@@ -68,6 +68,7 @@ class MagicProcessingService {
           final sliceResult = await _processSlice(
             sourceImage: sourceImage,
             sliceSpec: sliceSpec as Map<String, dynamic>,
+            sourceSpec: sourceSpec,
             projectPath: projectPath,
             sourceId: sourceId,
           );
@@ -150,6 +151,7 @@ class MagicProcessingService {
   static Future<bool> _processSlice({
     required ui.Image sourceImage,
     required Map<String, dynamic> sliceSpec,
+    required Map<String, dynamic> sourceSpec,
     required String projectPath,
     required int sourceId,
   }) async {
@@ -158,10 +160,18 @@ class MagicProcessingService {
       final polygon = sliceSpec['polygon'] as List<dynamic>;
       final transforms = sliceSpec['transforms'] as List<dynamic>?;
 
-      // Extract polygon coordinates
+      // Get expected source dimensions from meta.json
+      final expectedWidth = (sourceSpec['width'] as num).toDouble();
+      final expectedHeight = (sourceSpec['height'] as num).toDouble();
+
+      // Calculate scaling factors to match actual source image dimensions
+      final scaleX = sourceImage.width / expectedWidth;
+      final scaleY = sourceImage.height / expectedHeight;
+
+      // Extract and scale polygon coordinates
       final points = polygon
-          .map((point) => Offset(
-              (point['x'] as num).toDouble(), (point['y'] as num).toDouble()))
+          .map((point) => Offset((point['x'] as num).toDouble() * scaleX,
+              (point['y'] as num).toDouble() * scaleY))
           .toList();
 
       if (points.length < 3) {
@@ -238,20 +248,35 @@ class MagicProcessingService {
                 Offset(point.dx - bounds.left, point.dy - bounds.top))
             .toList();
 
+        // Build path - ensure correct winding order for proper clipping
         path.moveTo(adjustedPolygon[0].dx, adjustedPolygon[0].dy);
         for (int i = 1; i < adjustedPolygon.length; i++) {
           path.lineTo(adjustedPolygon[i].dx, adjustedPolygon[i].dy);
         }
         path.close();
+
+        // Set fill type to ensure proper clipping behavior
+        path.fillType = PathFillType.nonZero;
       }
 
-      // Clip to polygon and draw the source image
+      // Save canvas state before clipping
+      canvas.save();
+
+      // Apply clipping path
       canvas.clipPath(path);
-      canvas.drawImage(
+
+      // Draw the source image, properly positioned within the bounds
+      canvas.drawImageRect(
         sourceImage,
-        Offset(-bounds.left, -bounds.top),
-        Paint(),
+        Rect.fromLTWH(
+            0, 0, sourceImage.width.toDouble(), sourceImage.height.toDouble()),
+        Rect.fromLTWH(-bounds.left, -bounds.top, sourceImage.width.toDouble(),
+            sourceImage.height.toDouble()),
+        Paint()..filterQuality = FilterQuality.high,
       );
+
+      // Restore canvas state
+      canvas.restore();
 
       final picture = recorder.endRecording();
       return await picture.toImage(bounds.width.toInt(), bounds.height.toInt());

@@ -51,3 +51,40 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/magic_cube_logo.png
+    - assets/magics/
+    - assets/magics/decagonal/
+    - assets/magics/decagonal/pages/
+    - assets/magics/decagonal/pages/a4/
+    - assets/magics/invertible/
+    - assets/magics/invertible/pages/
+    - assets/magics/invertible/pages/a4/
+    - assets/magics/kaleidocycle/
+    - assets/magics/kaleidocycle/pages/
+    - assets/magics/kaleidocycle/pages/a4/
+    - assets/magics/magiccube/
+    - assets/magics/magiccube/pages/
+    - assets/magics/magiccube/pages/s/
+    - assets/magics/magiccube/pages/m/
+    - assets/magics/magiccube/pages/l/
+    - assets/magics/magiccube/pages/xl/
+    - assets/magics/magicprism/
+    - assets/magics/magicprism/pages/
+    - assets/magics/magicprism/pages/s/
+    - assets/magics/magicprism/pages/l/
+    - assets/magics/mixmatch/
+    - assets/magics/mixmatch/pages/
+    - assets/magics/mixmatch/pages/s/
+    - assets/magics/octagonal/
+    - assets/magics/octagonal/pages/
+    - assets/magics/octagonal/pages/a4/
+    - assets/magics/photocube/
+    - assets/magics/photocube/pages/
+    - assets/magics/photocube/pages/s/
+    - assets/magics/photocube/pages/m/
+    - assets/magics/stackingcube/
+    - assets/magics/stackingcube/pages/
+    - assets/magics/stackingcube/pages/std1/
+    - assets/magics/stackingcube/pages/std2/
+    - assets/magics/stackingcube/pages/m/
+    - assets/devices.json
