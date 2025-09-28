@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "name": "Standard 1",
+  "description": "1 Page standard 1",
+  "pages":[
+    { "id": 1,
+      "file": "1.png",
+      "sections":[   {
+        "scale" : 0.200 ,
+        "grid" : 170.00,
+        "offsetX": 71.00,
+        "offsetY": 1069.0,
+        "faces" : [
+          { "source": 1, "slice":1, "x": 1, "y": 0, "angle" : 180},
+          { "source": 2, "slice":1, "x": 2, "y": 1, "angle" : -90},
+          { "source": 3, "slice":1, "x": 1, "y": 2, "angle" : 0},
+          { "source": 4, "slice":1, "x": 0, "y": 1, "angle" : 90 },
+          { "source": 5, "slice":1, "x": 1, "y": 1, "angle" : 0 }
+        ]} ,
+        {
+          "scale" : 0.180 ,
+          "grid" : 152.0,
+          "offsetX": 271.0,
+          "offsetY": 508.0,
+          "faces" : [
+            { "source": 6, "slice":1, "x": 1, "y": 0, "angle" : 180},
+            { "source": 7, "slice":1, "x": 2, "y": 1, "angle" : -90},
+            { "source": 8, "slice":1, "x": 1, "y": 2, "angle" : 0},
+            { "source": 9, "slice":1, "x": 0, "y": 1, "angle" : 90 },
+            { "source": 10, "slice":1, "x": 1, "y": 1, "angle" : 0 }
+          ]
+        }]
+       }
+  ]
+}

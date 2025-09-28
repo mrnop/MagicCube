@@ -1,0 +1,125 @@
+{
+  "version": "1.0",
+  "name": "Extra Large",
+  "description": "8 pages print out",
+  "scale" : 1.01 ,
+  "grid" : 213.983,
+  "pages":[
+    { "id": 1,
+      "offsetX": 84.022, "offsetY": 959.817,
+      "file": "1.png",
+      "faces":[
+
+        { "source": 3, "slice":2, "x": 2, "y": 2, "angle" : 180},
+        { "source": 2, "slice":2, "x": 1, "y": 3, "angle" : 270 },
+        { "source": 4, "slice":1, "x": 1, "y": 2, "angle" : 180},
+        { "source": 7, "slice":2, "x": 1, "y": 1, "angle" : 270},
+        { "source": 5, "slice":1, "x": 1, "y": 0, "angle" : 180},
+        { "source": 6, "slice":1, "x": 0, "y": 0, "angle" : 180  }
+
+      ]},
+    { "id": 2,
+      "offsetX": 84.022, "offsetY": 959.817,
+      "file": "2.png",
+      "faces":[
+        { "source": 3, "slice":1, "x": 2, "y": 1, "angle" : 0},
+
+        { "source": 5, "slice":3, "x": 1, "y": 3, "angle" : 180},
+        { "source": 1, "slice":1, "x": 1, "y": 2, "angle" : 270},
+        { "source": 8, "slice":2, "x": 1, "y": 1, "angle" : 0 },
+        { "source": 2, "slice":1, "x": 1, "y": 0, "angle" : 270 },
+
+        { "source": 6, "slice":3, "x": 0, "y": 3, "angle" : 180}
+
+      ]},
+    { "id": 3,
+      "offsetX": 84.022, "offsetY": 959.817,
+      "file": "3.png",
+      "faces":[
+
+        { "source": 3, "slice":4, "x": 0, "y": 0, "angle" : 90},
+
+        { "source": 2, "slice":4, "x": 1, "y": 0, "angle" : 90},
+        { "source": 8, "slice":1, "x": 1, "y": 1, "angle" : 0},
+        { "source": 1, "slice":2, "x": 1, "y": 2, "angle" : 90},
+        { "source": 5, "slice":4, "x": 1, "y": 3, "angle" : 180 },
+
+        { "source": 6, "slice":4, "x": 2, "y": 2, "angle" : 90}
+
+      ]},
+    { "id": 4,
+      "offsetX": 84.022, "offsetY": 959.817,
+      "file": "4.png",
+      "faces":[
+
+
+        { "source": 6, "slice":2, "x": 2, "y": 1, "angle" : -90},
+
+        { "source": 5, "slice":2, "x": 1, "y": 0, "angle" : 180},
+        { "source": 7, "slice":1, "x": 1, "y": 1, "angle" : 90},
+        { "source": 4, "slice":2, "x": 1, "y": 2, "angle" : 180},
+        { "source": 2, "slice":3, "x": 1, "y": 3, "angle" : 90},
+
+        { "source": 3, "slice":3, "x": 0, "y": 3, "angle" : 90}
+
+      ]},
+    { "id": 5,
+      "offsetX": 84.022, "offsetY": 959.817,
+      "file": "5.png",
+      "faces" : [
+        { "source": 3, "slice":7, "x": 2, "y": 2, "angle" : 0},
+
+        { "source": 2, "slice":7, "x": 1, "y": 3, "angle" : 90 },
+        { "source": 4, "slice":4, "x": 1, "y": 2, "angle" : 0 , "watermark" : "default.png"},
+        { "source": 7, "slice":3, "x": 1, "y": 1, "angle" : 90},
+        { "source": 5, "slice":8, "x": 1, "y": 0, "angle" : 0 },
+
+        { "source": 6, "slice":8, "x": 0, "y": 0, "angle" : 0 , "watermark" : "default.png"}
+
+      ]},
+    { "id": 6,
+      "offsetX": 84.022, "offsetY": 959.817,
+      "file": "6.png",
+      "faces" : [
+        { "source": 3, "slice":8, "x": 2, "y": 1, "angle" : 180},
+
+        { "source": 5, "slice":6, "x": 1, "y": 3, "angle" : 0},
+        { "source": 1, "slice":4, "x": 1, "y": 2, "angle" : 90 },
+        { "source": 8, "slice":3, "x": 1, "y": 1, "angle" : 180},
+        { "source": 2, "slice":8, "x": 1, "y": 0, "angle" : 90 , "watermark" : "default.png"},
+
+        { "source": 6, "slice":6, "x": 0, "y": 3, "angle" : 0}
+
+
+      ]},
+    { "id": 7,
+      "offsetX": 84.022, "offsetY": 959.817,
+      "file": "7.png",
+      "faces" : [
+        { "source": 3, "slice":5, "x": 0, "y": 0, "angle" : -90},
+
+        { "source": 2, "slice":5, "x": 1, "y": 0, "angle" : -90},
+        { "source": 8, "slice":4, "x": 1, "y": 1, "angle" : 180},
+        { "source": 1, "slice":3, "x": 1, "y": 2, "angle" : -90},
+        { "source": 5, "slice":5, "x": 1, "y": 3, "angle" : 0},
+
+        { "source": 6, "slice":5, "x": 2, "y": 2, "angle" : -90}
+
+
+      ]},
+    { "id": 8,
+      "offsetX": 84.022, "offsetY": 959.817,
+      "file": "8.png",
+      "faces" : [
+        { "source": 6, "slice":7, "x": 2, "y": 1, "angle" : 90},
+
+        { "source": 5, "slice":7, "x": 1, "y": 0, "angle" : 0},
+        { "source": 7, "slice":4, "x": 1, "y": 1, "angle" : -90, "watermark" : "default.png"},
+        { "source": 4, "slice":3, "x": 1, "y": 2, "angle" : 0},
+        { "source": 2, "slice":6, "x": 1, "y": 3, "angle" : -90},
+
+        { "source": 3, "slice":6, "x": 0, "y": 3, "angle" : -90}
+
+      ]}
+  ]
+}

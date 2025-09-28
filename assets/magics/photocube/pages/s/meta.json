@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "name": "Small",
+  "description": "1 pages print out",
+  "scale" : 0.25 ,
+  "grid" : 214.575,
+  "pages":[
+    { "id": 1,
+      "offsetX": 74.049, "offsetY": 972.737,
+      "file": "1.png",
+      "faces" : [
+        { "source": 1, "slice":1, "x": 1, "y": 0, "angle" : 0},
+        { "source": 2, "slice":1, "x": 2, "y": 1, "angle" : 90},
+        { "source": 3, "slice":1, "x": 1, "y": 2, "angle" : 180},
+        { "source": 4, "slice":1, "x": 0, "y": 1, "angle" : -90 },
+        { "source": 5, "slice":1, "x": 1, "y": 1, "angle" : 0 },
+        { "source": 6, "slice":1, "x": 1, "y": 3, "angle" : 180}
+      ],
+      "watermarks":[{"src":"watermask.png" , "x" :1.6 , "y": 1.8, "angle" : 0 ,"scale":1.0}  ]}
+  ]
+}

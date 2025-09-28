@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "name": "Standard A4",
+  "scale" : 0.62 ,
+  "grid" : 1,
+  "pages":[
+    { "id": 1,
+      "offsetX": 0, "offsetY": 0,
+      "file": "1.png",
+      "faces":[
+
+        { "source": 1, "slice":5, "x": 147.963, "y": 1010.944, "angle" : -90 },
+        { "source": 1, "slice":3, "x": 147.963, "y": 748.692, "angle" : -90},
+        { "source": 1, "slice":1, "x": 147.963, "y": 485.481, "angle" : -90 },
+        { "source": 1, "slice":2, "x": 530.042, "y": 835.626, "angle" : -90 },
+        { "source": 1, "slice":4, "x": 530.042, "y": 571.743, "angle" : -90 },
+        { "source": 1, "slice":6, "x": 530.042, "y": 310.376, "angle" : -90},
+
+        { "source": 2, "slice":3, "x": 147.963, "y": 1010.944, "angle" : -90 },
+        { "source": 2, "slice":5, "x": 147.963, "y": 748.692, "angle" : -90 },
+        { "source": 2, "slice":6, "x": 147.963, "y": 485.481, "angle" : -90 },
+        { "source": 2, "slice":4, "x": 530.042, "y": 835.626, "angle" : -90 },
+        { "source": 2, "slice":2, "x": 530.042, "y": 571.743, "angle" : -90},
+        { "source": 2, "slice":1, "x": 530.042, "y": 310.376, "angle" : -90 },
+
+        { "source": 3, "slice":3, "x": 279.493, "y": 1010.944, "angle" : -120 },
+        { "source": 3, "slice":1, "x": 279.493, "y": 748.692, "angle" : -60 },
+        { "source": 3, "slice":2, "x": 279.493, "y": 485.481, "angle" : -120 },
+        { "source": 3, "slice":4, "x": 661.022, "y": 835.626, "angle" : -60 },
+        { "source": 3, "slice":6, "x": 661.022, "y": 571.743, "angle" : -120 },
+        { "source": 3, "slice":5, "x": 661.022, "y": 310.376, "angle" : -60 },
+
+        { "source": 4, "slice":5, "x": 34.183, "y": 1010.944, "angle" : -120 },
+        { "source": 4, "slice":6, "x": 34.183, "y": 748.692, "angle" : -60 },
+        { "source": 4, "slice":4, "x": 34.183, "y": 485.481, "angle" : -120} ,
+        { "source": 4, "slice":2, "x": 415.963, "y": 835.626, "angle" : -60},
+        { "source": 4, "slice":1, "x": 415.963, "y": 571.743, "angle" : -120 },
+        { "source": 4, "slice":3, "x": 415.963, "y": 310.376, "angle" : -60}
+      ],
+      "watermarks":[{"src":"watermask.png" , "x" : 530.042, "y":  531.743, "angle" :-90 ,"scale":1.0} ]}
+  ]
+}

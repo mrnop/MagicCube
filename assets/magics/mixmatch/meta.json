@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "name" : "Mix&Match Cube",
+  "icon" : "icon.png",
+  "description" : "Mix & Match Cube",
+  "sources":[
+    {"id":1 , "width":400,"height":1200, "mask" :"mask.png",
+      "slices":[
+        {"id":1 ,"polygon": [{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}] },
+        {"id":2 ,"polygon": [{"x":0, "y": 400},{"x":400, "y": 400},{"x":400, "y": 800},{"x":0, "y": 800}] },
+        {"id":3 ,"polygon": [{"x":0, "y": 800},{"x":400, "y": 800},{"x":400, "y": 1200},{"x":0, "y": 1200}] }
+      ]
+    },
+    {"id":2 , "width":400,"height":1200, "mask" :"mask.png",
+      "slices":[
+        {"id":1 ,"polygon": [{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}] },
+        {"id":2 ,"polygon": [{"x":0, "y": 400},{"x":400, "y": 400},{"x":400, "y": 800},{"x":0, "y": 800}] },
+        {"id":3 ,"polygon": [{"x":0, "y": 800},{"x":400, "y": 800},{"x":400, "y": 1200},{"x":0, "y": 1200}] }
+      ]
+    },
+    {"id":3 , "width":400,"height":1200, "mask" :"mask.png",
+      "slices":[
+        {"id":1 ,"polygon": [{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}] },
+        {"id":2 ,"polygon": [{"x":0, "y": 400},{"x":400, "y": 400},{"x":400, "y": 800},{"x":0, "y": 800}] },
+        {"id":3 ,"polygon": [{"x":0, "y": 800},{"x":400, "y": 800},{"x":400, "y": 1200},{"x":0, "y": 1200}] }
+      ]
+    },
+    {"id":4 , "width":400,"height":1200, "mask" :"mask.png",
+      "slices":[
+        {"id":1 ,"polygon": [{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}] },
+        {"id":2 ,"polygon": [{"x":0, "y": 400},{"x":400, "y": 400},{"x":400, "y": 800},{"x":0, "y": 800}] },
+        {"id":3 ,"polygon": [{"x":0, "y": 800},{"x":400, "y": 800},{"x":400, "y": 1200},{"x":0, "y": 1200}] }
+      ]
+    }
+  ],
+  "texts" :[
+    {"id":1 ,"text": "T", "size": 20 ,"textColor":"#ffffff", "background": "#ff880f", "font":"default.ttf",
+      "polygon": [{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}] },
+    {"id":2 ,"text": "T", "size": 20 ,"textColor":"#ffffff", "background": "#ff880f", "font":"default.ttf",
+      "polygon":  [{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}]},
+    {"id":3 ,"text": "T", "size": 20 ,"textColor":"#ffffff", "background": "#ff880f", "font":"default.ttf",
+      "polygon": [{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}] },
+    {"id":4 ,"text": "B", "size": 20 ,"textColor":"#ffffff", "background": "#ff880f", "font":"default.ttf",
+      "polygon": [{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}] },
+    {"id":5 ,"text": "B", "size": 20 ,"textColor":"#ffffff", "background": "#ff880f", "font":"default.ttf",
+      "polygon":[{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}] },
+    {"id":6 ,"text": "B", "size": 20 ,"textColor":"#ffffff", "background": "#ff880f", "font":"default.ttf",
+      "polygon": [{"x":0, "y": 0},{"x":400, "y": 0},{"x":400, "y": 400},{"x":0, "y": 400}]}
+
+  ]
+}

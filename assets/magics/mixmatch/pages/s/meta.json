@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "name": "Small",
+  "description": "1 pages print out",
+  "scale" : 0.301 ,
+  "grid" : 129.808,
+  "pages":[
+    { "id": 1,
+      "offsetX": 6.754, "offsetY": 982.957,
+      "file": "1.png",
+      "faces" : [
+        { "source": 1, "slice":1, "x": 1, "y": 0, "angle" : 0},
+        { "source": 2, "slice":1, "x": 2, "y": 1, "angle" : 90},
+        { "source": 3, "slice":1, "x": 1, "y": 2, "angle" : 180},
+        { "source": 4, "slice":1, "x": 0, "y": 1, "angle" : -90 },
+
+        { "source": 1, "slice":2, "x": 4 , "y": 4, "angle" : 180},
+        { "source": 2, "slice":2, "x": 3, "y": 3, "angle" : -90},
+        { "source": 3, "slice":2, "x": 4, "y": 2, "angle" : 0},
+        { "source": 4, "slice":2, "x": 5, "y": 3, "angle" : 90 },
+
+        { "source": 1, "slice":3, "x": 1, "y": 4, "angle" : 0},
+        { "source": 2, "slice":3, "x": 2, "y": 5, "angle" : 90},
+        { "source": 3, "slice":3, "x": 1, "y": 6, "angle" : 180},
+        { "source": 4, "slice":3, "x": 0, "y": 5, "angle" : -90 }
+      ],
+      "texts" : [
+        { "text": 1, "x": 1, "y": 1, "angle" : 0},
+        { "text": 2, "x": 4, "y": 3, "angle" : 0},
+        { "text": 3, "x": 1, "y": 5, "angle" : 0},
+        { "text": 4, "x": 3, "y": 1, "angle" : 90},
+        { "text": 5, "x": 2, "y": 3, "angle" : 90},
+        { "text": 6, "x": 3, "y": 5, "angle" : 90}
+      ],
+      "watermarks":[{"src":"watermask.png" , "x" : 1.25 , "y":1.25, "angle" : 0 ,"scale":1.0} ,
+        {"src":"watermask.png" , "x" :4.25 , "y":3.25, "angle" :0,"scale":1.0},
+        {"src":"watermask.png" , "x" :1.25 , "y":5.25, "angle" :0,"scale":1.0}] }
+  ]
+}

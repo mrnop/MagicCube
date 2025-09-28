@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "name": "Small",
+  "description": "1 page print out",
+  "scale" : 0.396 ,
+  "grid" : 84.817,
+  "pages":[
+    { "id": 1,
+      "offsetX": 53.663, "offsetY": 1062.098,
+      "file": "1.png",
+      "faces":[
+        { "source": 3, "slice":1, "x": 5, "y": 3, "angle" : 270},
+        { "source": 3, "slice":2, "x": 2, "y": 3, "angle" : 90},
+        { "source": 4, "slice":1, "x": 2, "y": 4, "angle" : 90},
+        { "source": 5, "slice":3, "x": 7, "y": 4, "angle" : 90},
+        { "source": 1, "slice":1, "x": 6, "y": 4, "angle" : 180},
+        { "source": 8, "slice":2, "x": 5, "y": 4, "angle" : 270},
+        { "source": 2, "slice":1, "x": 4, "y": 4, "angle" : 180 },
+        { "source": 2, "slice":2, "x": 3, "y": 4, "angle" : 180 },
+        { "source": 7, "slice":2, "x": 1, "y": 4, "angle" : 180},
+        { "source": 5, "slice":1, "x": 0, "y": 4, "angle" : 90},
+        { "source": 6, "slice":3, "x": 7, "y": 5, "angle" : 90},
+        { "source": 6, "slice":1, "x": 0, "y": 5, "angle" : 90},
+
+
+        { "source": 3, "slice":4, "x": 0, "y": 2, "angle" : 0},
+        { "source": 2, "slice":4, "x": 0, "y": 1, "angle" : 0},
+        { "source": 8, "slice":1, "x": 1, "y": 1, "angle" : -90},
+        { "source": 1, "slice":2, "x": 2, "y": 1, "angle" : 0},
+        { "source": 6, "slice":4, "x": 2, "y": 0, "angle" : 0},
+        { "source": 5, "slice":4, "x": 3, "y": 1, "angle" : 90},
+        { "source": 5, "slice":2, "x": 4, "y": 1, "angle" : 90},
+        { "source": 7, "slice":1, "x": 5, "y": 1, "angle" : 0},
+        { "source": 6, "slice":2, "x": 5, "y": 0, "angle" : -180},
+        { "source": 3, "slice":3, "x": 7, "y": 2, "angle" : 0},
+        { "source": 4, "slice":2, "x": 6, "y": 1, "angle" : 90},
+        { "source": 2, "slice":3, "x": 7, "y": 1, "angle" : 0},
+
+
+        { "source": 5, "slice":6, "x": 7, "y": 10, "angle" : 270},
+        { "source": 6, "slice":6, "x": 7, "y": 11, "angle" : 270},
+        { "source": 1, "slice":4, "x": 6, "y": 10, "angle" : 0},
+        { "source": 3, "slice":8, "x": 5, "y": 9, "angle" : 90},
+        { "source": 8, "slice":3, "x": 5, "y": 10, "angle" : 90},
+        { "source": 2, "slice":8, "x": 4, "y": 10, "angle" : 0  , "watermark" : "default.png"},
+        { "source": 2, "slice":7, "x": 3, "y": 10, "angle" : 0 },
+        { "source": 3, "slice":7, "x": 2, "y": 9, "angle" : 270},
+        { "source": 4, "slice":4, "x": 2, "y": 10, "angle" : 270 , "watermark" : "default.png"},
+        { "source": 7, "slice":3, "x": 1, "y": 10, "angle" : 0},
+        { "source": 5, "slice":8, "x": 0, "y": 10, "angle" : 270},
+        { "source": 6, "slice":8, "x": 0, "y": 11, "angle" : 270 , "watermark" : "default.png"},
+
+        { "source": 3, "slice":5, "x": 0, "y": 8, "angle" : -180},
+        { "source": 2, "slice":5, "x": 0, "y": 7, "angle" : -180},
+        { "source": 8, "slice":4, "x": 1, "y": 7, "angle" : 90},
+        { "source": 1, "slice":3, "x": 2, "y": 7, "angle" : -180},
+        { "source": 6, "slice":5, "x": 2, "y": 6, "angle" : -180},
+        { "source": 5, "slice":5, "x": 3, "y": 7, "angle" : -90},
+        { "source": 5, "slice":7, "x": 4, "y": 7, "angle" : -90},
+        { "source": 7, "slice":4, "x": 5, "y": 7, "angle" : -180  , "watermark" : "default.png"},
+        { "source": 6, "slice":7, "x": 5, "y": 6, "angle" : 0},
+        { "source": 4, "slice":3, "x": 6, "y": 7, "angle" : -90},
+        { "source": 3, "slice":6, "x": 7, "y": 8, "angle" : -180},
+        { "source": 2, "slice":6, "x": 7, "y": 7, "angle" : -180}
+      ]}
+
+  ]
+}

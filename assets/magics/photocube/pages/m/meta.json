@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "name": "Medium",
+  "description": "2 pages print out",
+  "scale" : 0.378 ,
+  "grid" : 323.966,
+  "pages":[
+    { "id": 1,
+      "offsetX": 131.497, "offsetY": 848.202,
+      "file": "1.png",
+      "faces":[
+        { "source": 1, "slice":1, "x": 1, "y": 0, "angle" : 90},
+        { "source": 2, "slice":1, "x": 0, "y": 1, "angle" : 180},
+        { "source": 5, "slice":1, "x": 0, "y": 0, "angle" : 90}
+
+      ],
+      "watermarks":[{"src":"watermask.png" , "x" : 0 , "y": 0, "angle" : 90 ,"scale":2.0}]},
+    { "id": 2,
+      "offsetX": 28.562, "offsetY": 848.202,
+      "file": "2.png",
+      "faces":[
+
+        { "source": 3, "slice":1, "x": 1, "y": 0, "angle" : 180},
+        { "source": 4, "slice":1, "x": 0, "y": 0, "angle" : 180},
+        { "source": 6, "slice":1, "x": 1, "y": 1, "angle" : 180}
+
+      ]}
+  ]
+}

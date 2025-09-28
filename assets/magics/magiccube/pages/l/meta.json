@@ -1,0 +1,103 @@
+{
+  "version": "1.0",
+  "name": "Large",
+  "description": "4 pages print out",
+  "scale" : 0.735 ,
+  "grid" : 77.2125,
+  "pages":[
+    { "id": 1,
+      "offsetX": 50.340, "offsetY": 1013.793,
+      "file": "1.png",
+      "faces":[
+        { "source": 3, "slice":1, "x": 3, "y": 0, "angle" : 270},
+
+        { "source": 5, "slice":3, "x": 7, "y": 2, "angle" : 90},
+        { "source": 1, "slice":1, "x": 5, "y": 2, "angle" : 180},
+        { "source": 8, "slice":2, "x": 3, "y": 2, "angle" : 270},
+        { "source": 2, "slice":1, "x": 1, "y": 2, "angle" : 180 },
+
+        { "source": 6, "slice":3, "x": 7, "y": 4, "angle" : 90},
+
+        { "source": 3, "slice":2, "x": 4, "y": 6, "angle" : 90},
+
+        { "source": 2, "slice":2, "x": 6, "y": 8, "angle" : 180 },
+        { "source": 4, "slice":1, "x": 4, "y": 8, "angle" : 90},
+        { "source": 7, "slice":2, "x": 2, "y": 8, "angle" : 180},
+        { "source": 5, "slice":1, "x": 0, "y": 8, "angle" : 90},
+
+        { "source": 6, "slice":1, "x": 0, "y": 10, "angle" : 90}
+
+      ]},
+    { "id": 2,
+      "offsetX": 50.340, "offsetY": 1013.793,
+      "file": "2.png",
+      "faces":[
+
+        { "source": 3, "slice":4, "x": 0, "y": 10, "angle" : 0},
+
+        { "source": 2, "slice":4, "x": 0, "y": 8, "angle" : 0},
+        { "source": 8, "slice":1, "x": 2, "y": 8, "angle" : -90},
+        { "source": 1, "slice":2, "x": 4, "y": 8, "angle" : 0},
+        { "source": 5, "slice":4, "x": 6, "y": 8, "angle" : 90},
+
+        { "source": 6, "slice":4, "x": 4, "y": 6, "angle" : 0},
+
+        { "source": 6, "slice":2, "x": 3, "y": 0, "angle" : -180},
+
+        { "source": 5, "slice":2, "x": 1, "y": 2, "angle" : 90},
+        { "source": 7, "slice":1, "x": 3, "y": 2, "angle" : 0},
+        { "source": 4, "slice":2, "x": 5, "y": 2, "angle" : 90},
+        { "source": 2, "slice":3, "x": 7, "y": 2, "angle" : 0},
+
+        { "source": 3, "slice":3, "x": 7, "y": 4, "angle" : 0}
+
+      ]},
+    { "id": 3,
+      "offsetX": 50.340, "offsetY": 1013.793,
+      "file": "3.png",
+      "faces" : [
+
+        { "source": 3, "slice":8, "x": 3, "y": 0, "angle" : 90},
+
+        { "source": 5, "slice":6, "x": 7, "y": 2, "angle" : 270},
+        { "source": 1, "slice":4, "x": 5, "y": 2, "angle" : 0},
+        { "source": 8, "slice":3, "x": 3, "y": 2, "angle" : 90},
+        { "source": 2, "slice":8, "x": 1, "y": 2, "angle" : 0 , "watermark" : "default.png"},
+
+        { "source": 6, "slice":6, "x": 7, "y": 4, "angle" : 270},
+
+        { "source": 3, "slice":7, "x": 4, "y": 6, "angle" : 270},
+
+        { "source": 2, "slice":7, "x": 6, "y": 8, "angle" : 0 },
+        { "source": 4, "slice":4, "x": 4, "y": 8, "angle" : 270 , "watermark" : "default.png"},
+        { "source": 7, "slice":3, "x": 2, "y": 8, "angle" : 0},
+        { "source": 5, "slice":8, "x": 0, "y": 8, "angle" : 270},
+
+        { "source": 6, "slice":8, "x": 0, "y": 10, "angle" : 270 , "watermark" : "default.png"}
+
+      ]},
+    { "id": 4,
+      "offsetX": 50.340, "offsetY": 1013.793,
+      "file": "4.png",
+      "faces" : [
+        { "source": 3, "slice":5, "x": 0, "y": 10, "angle" : -180},
+
+        { "source": 2, "slice":5, "x": 0, "y": 8, "angle" : -180},
+        { "source": 8, "slice":4, "x": 2, "y": 8, "angle" : 90},
+        { "source": 1, "slice":3, "x": 4, "y": 8, "angle" : -180},
+        { "source": 5, "slice":5, "x": 6, "y": 8, "angle" : -90},
+
+        { "source": 6, "slice":5, "x": 4, "y": 6, "angle" : -180},
+
+
+        { "source": 6, "slice":7, "x": 3, "y": 0, "angle" : 0},
+
+        { "source": 5, "slice":7, "x": 1, "y": 2, "angle" : -90},
+        { "source": 7, "slice":4, "x": 3, "y": 2, "angle" : -180 , "watermark" : "default.png"},
+        { "source": 4, "slice":3, "x": 5, "y": 2, "angle" : -90},
+        { "source": 2, "slice":6, "x": 7, "y": 2, "angle" : -180},
+        { "source": 3, "slice":6, "x": 7, "y": 4, "angle" : -180}
+
+      ]}
+  ]
+}
