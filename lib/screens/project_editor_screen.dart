@@ -316,7 +316,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
                     clipBehavior: Clip.antiAlias,
                     child: Stack(
                       children: [
-                        Container(
+                        SizedBox(
                           width: double.infinity,
                           height: double.infinity,
                           child: Image.file(

@@ -118,7 +118,6 @@ class MagicManager {
       return null;
     }
   }
-
   /// Load bitmap from magic assets
   Future<ui.Image?> loadMagicBitmap(String magicPath, String filename) async {
     try {

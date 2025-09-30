@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:ui' as ui;
-import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -399,13 +398,13 @@ class _MaskCropScreenState extends State<MaskCropScreen> {
       );
       canvas.restore();
 
-      // Apply the mask using destination-in blend mode
+      // Apply the mask using XOR blend mode
       canvas.drawImageRect(
         widget.maskImage,
         Rect.fromLTWH(0, 0, widget.maskImage.width.toDouble(),
             widget.maskImage.height.toDouble()),
         Rect.fromLTWH(0, 0, outputWidth, outputHeight),
-        Paint()..blendMode = BlendMode.dstIn,
+        Paint()..blendMode = BlendMode.xor,
       );
 
       final picture = recorder.endRecording();

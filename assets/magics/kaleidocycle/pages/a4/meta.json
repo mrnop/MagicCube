@@ -12,12 +12,10 @@
 
         { "source": 1, "slice":2, "x": 33.714, "y": 1056.422, "angle" : 243},
         { "source": 1, "slice":3, "x": 33.714, "y": 713.415, "angle" : 243 },
-        { "source": 1, "slice":1, "x": 33.714, "y": 364.653, "angle" : -117 },
+        { "source": 1, "slice":1, "x": 33.714, "y": 364.653, "angle" : -117 }
 
 
-
-        { "source": 2, "slice":1, "x": 119.428, "y": 191.377, "angle" : -117 },
-        { "source": 2, "slice":3, "x": 119.428, "y": 538.374, "angle" : 243},
+       { "source": 2, "slice":3, "x": 119.428, "y": 538.374, "angle" : 243},
         { "source": 2, "slice":2, "x": 119.428, "y": 885.088, "angle" : 243 },
         { "source": 2, "slice":1, "x": 119.428, "y": 1225.756, "angle" : -117},
 
@@ -26,11 +24,10 @@
         { "source": 3, "slice":1, "x": 206.394, "y": 364.653, "angle" : -117 },
 
 
-
         { "source": 4, "slice":1, "x": 292.347, "y": 191.377, "angle" : -117 },
         { "source": 4, "slice":3, "x": 292.347, "y": 538.374, "angle" : 243},
         { "source": 4, "slice":2, "x": 292.347, "y": 885.088, "angle" : 243 },
-        { "source": 4, "slice":1, "x": 292.347, "y": 1225.756, "angle" : -117}
+        { "source": 4, "slice":1, "x": 292.347, "y": 1225.756, "angle" : -117}  
 
       ],
      "watermarks":[{"src":"watermask.png" , "x" : 119.428 , "y": 280, "angle" : -90 ,"scale":2.0} ,

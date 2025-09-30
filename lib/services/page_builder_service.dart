@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import '../models/magic.dart';
 import '../models/page.dart';
 import '../services/magic_manager.dart';
+import '../utils/image_utils.dart';
 
 /// Result of page building operation
 class PagePreview {
@@ -378,25 +379,47 @@ class PageBuilderService {
         return;
       }
 
-      // Apply face transforms
+      // Apply face transforms - following Java MagicManager.buildFace logic exactly
       for (final transform in face.transforms) {
         if (sliceImage != null) {
-          sliceImage = await _applyTransform(sliceImage, transform);
+          debugPrint('Applying face transform: ${transform.type}');
+          if (transform.type == 'perspective') {
+            // Java: bm = applyPerspectiveTransform(bm, transform.getParams());
+            sliceImage =
+                await _applyPerspectiveTransform(sliceImage, transform.params);
+          } else if (transform.type == 'rotate') {
+            // Java: rotateTransform.transform(bm) then Utils.trim()
+            sliceImage = await _applyRotateTransform(sliceImage, transform);
+            sliceImage =
+                sliceImage != null ? await ImageUtils.trim(sliceImage) : null;
+          } else if (transform.type == 'scale') {
+            // Java: scaleTransform.transform(bm) then Utils.trim()
+            sliceImage = await _applyScaleTransform(sliceImage, transform);
+            sliceImage =
+                sliceImage != null ? await ImageUtils.trim(sliceImage) : null;
+          }
           if (sliceImage == null) break;
         }
       }
 
       if (sliceImage == null) return;
 
-      // Apply face rotation
+      // Apply face rotation - using ImageUtils like Java
       if (face.angle != 0) {
-        sliceImage = await _rotateImage(sliceImage, face.angle);
+        sliceImage = await ImageUtils.rotateBitmap(sliceImage, face.angle);
         if (sliceImage == null) return;
       }
 
-      // Apply scaling
-      final finalScale = scale != 1 ? scale * printScale : printScale;
-      sliceImage = await _scaleImage(sliceImage, finalScale);
+      // Apply scaling - following Java MagicManager.buildFace logic exactly
+      // Java: if (scale != 1) { bm = Utils.scaleBitmap(bm, scale * printScale); } else { bm = Utils.scaleBitmap(bm, printScale); }
+      // Note: Java doesn't have face.scale, but we keep it for compatibility
+      if (scale != 1) {
+        sliceImage = await ImageUtils.scaleBitmapByFactor(
+            sliceImage, scale * printScale);
+      } else {
+        sliceImage =
+            await ImageUtils.scaleBitmapByFactor(sliceImage, printScale);
+      }
       if (sliceImage == null) return;
 
       // Calculate position
@@ -652,49 +675,27 @@ class PageBuilderService {
     }
   }
 
+  /// Scale image using ImageUtils for consistency with Java implementation
   static Future<ui.Image?> _scaleImage(ui.Image image, double scale) async {
     try {
       if (scale == 1.0) return image;
 
-      final newWidth = (image.width * scale).toInt();
-      final newHeight = (image.height * scale).toInt();
-
-      if (newWidth <= 0 || newHeight <= 0) return image;
-
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder,
-          Rect.fromLTWH(0, 0, newWidth.toDouble(), newHeight.toDouble()));
-
-      canvas.scale(scale);
-      canvas.drawImage(image, Offset.zero, Paint());
-
-      final picture = recorder.endRecording();
-      return await picture.toImage(newWidth, newHeight);
+      // Use ImageUtils for consistent scaling with Java implementation
+      return await ImageUtils.scaleBitmapByFactor(image, scale, recycle: false);
     } catch (e) {
       debugPrint('Error scaling image: $e');
       return null;
     }
   }
 
+  /// Rotate image using ImageUtils for consistency with Java implementation
   static Future<ui.Image?> _rotateImage(
       ui.Image image, double angleDegrees) async {
     try {
       if (angleDegrees == 0) return image;
 
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder);
-
-      final centerX = image.width / 2.0;
-      final centerY = image.height / 2.0;
-
-      canvas.translate(centerX, centerY);
-      canvas.rotate(angleDegrees * 3.14159 / 180.0);
-      canvas.translate(-centerX, -centerY);
-
-      canvas.drawImage(image, Offset.zero, Paint());
-
-      final picture = recorder.endRecording();
-      return await picture.toImage(image.width, image.height);
+      // Use ImageUtils for consistent rotation with Java implementation
+      return await ImageUtils.rotateBitmap(image, angleDegrees, recycle: false);
     } catch (e) {
       debugPrint('Error rotating image: $e');
       return null;
@@ -758,24 +759,45 @@ class PageBuilderService {
     }
   }
 
-  static Future<ui.Image?> _applyTransform(
+  /// Apply perspective transformation to match Java implementation
+  static Future<ui.Image?> _applyPerspectiveTransform(
+      ui.Image image, Map<String, dynamic> params) async {
+    try {
+      // For now, return the image unchanged as perspective transforms
+      // require complex matrix operations in Flutter
+      // TODO: Implement perspective transformation using Matrix4
+      debugPrint('Perspective transform not yet implemented in Flutter');
+      return image;
+    } catch (e) {
+      debugPrint('Error applying perspective transform: $e');
+      return null;
+    }
+  }
+
+  /// Apply rotate transformation following Java RotateTransform logic
+  static Future<ui.Image?> _applyRotateTransform(
       ui.Image image, MagicTransform transform) async {
     try {
-      switch (transform.type) {
-        case 'rotate':
-          final angle = transform.params['angle']?.toDouble() ?? 0;
-          return await _rotateImage(image, angle);
-        case 'scale':
-          final scaleX = transform.params['scaleX']?.toDouble() ?? 1;
-          final scaleY = transform.params['scaleY']?.toDouble() ?? 1;
-          final avgScale = (scaleX + scaleY) / 2;
-          return await _scaleImage(image, avgScale);
-        default:
-          debugPrint('Unknown transform type: ${transform.type}');
-          return image;
-      }
+      final angle = transform.params['angle']?.toDouble() ?? 0;
+      return await ImageUtils.rotateBitmap(image, angle, recycle: false);
     } catch (e) {
-      debugPrint('Error applying transform: $e');
+      debugPrint('Error applying rotate transform: $e');
+      return null;
+    }
+  }
+
+  /// Apply scale transformation following Java ScaleTransform logic
+  static Future<ui.Image?> _applyScaleTransform(
+      ui.Image image, MagicTransform transform) async {
+    try {
+      final scaleX = transform.params['scaleX']?.toDouble() ?? 1;
+      final scaleY = transform.params['scaleY']?.toDouble() ?? 1;
+      // Use average scale for uniform scaling
+      final avgScale = (scaleX + scaleY) / 2;
+      return await ImageUtils.scaleBitmapByFactor(image, avgScale,
+          recycle: false);
+    } catch (e) {
+      debugPrint('Error applying scale transform: $e');
       return null;
     }
   }

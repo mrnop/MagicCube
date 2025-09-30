@@ -255,8 +255,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   Widget _buildActionsSection() {
-    final canProcess =
-        _processingStatus != null && !_processingStatus!.isProcessed;
+    // Allow processing if we have status and either:
+    // 1. Project is not processed yet (first time)
+    // 2. Project is already processed (reprocessing)
+    // We always allow processing if status is available - the service will validate source images
+    final canProcess = _processingStatus != null;
     final isProcessed = _processingStatus?.isProcessed ?? false;
 
     return Card(
@@ -353,25 +356,39 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   void _processProject() {
     if (widget.save.path == null) return;
 
+    final isReprocessing = _processingStatus?.isProcessed == true;
+    final actionText = isReprocessing ? 'Reprocess' : 'Process';
+    final actionVerb = isReprocessing ? 'reprocess' : 'process';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Process Project'),
+        title: Text('$actionText Project'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'This will process your cropped images according to the template specifications:',
+            Text(
+              'This will $actionVerb your cropped images according to the template specifications:',
             ),
             const SizedBox(height: 8),
             const Text('• Extract slices from source images'),
             const Text('• Apply perspective transformations'),
             const Text('• Generate all parts for the magic cube'),
+            if (isReprocessing) ...[
+              const SizedBox(height: 8),
+              const Text(
+                '• Overwrite existing processed slices',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             if (_processingStatus != null && _processingStatus!.totalSlices > 0)
               Text(
-                'This will generate ${_processingStatus!.totalSlices} slices for assembly.',
+                'This will ${isReprocessing ? 'regenerate' : 'generate'} ${_processingStatus!.totalSlices} slices for assembly.',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
           ],
@@ -386,7 +403,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               Navigator.pop(context);
               _startProcessing();
             },
-            child: const Text('Start Processing'),
+            child:
+                Text('Start ${isReprocessing ? 'Reprocessing' : 'Processing'}'),
           ),
         ],
       ),
@@ -396,6 +414,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   void _startProcessing() async {
     if (widget.save.path == null) return;
 
+    // Determine if this is reprocessing
+    final isReprocessing = _processingStatus?.isProcessed == true;
+    final dialogTitle =
+        isReprocessing ? 'Reprocessing Images' : 'Processing Images';
+
     // Show processing dialog
     String currentProgress = 'Initializing...';
 
@@ -404,7 +427,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Processing Images'),
+          title: Text(dialogTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -418,10 +441,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     );
 
     try {
+      // Determine if this is reprocessing (project already has processed slices)
+      final isReprocessing = _processingStatus?.isProcessed == true;
+
       // Start the processing
       final result = await MagicProcessingService.processProject(
         projectPath: widget.save.path!,
         templatePath: widget.save.magic,
+        forceReprocess: isReprocessing,
         onProgress: (message) {
           // Update progress message in dialog
           if (mounted) {
@@ -443,10 +470,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         await _loadProcessingStatus();
 
         if (mounted) {
+          final actionText = isReprocessing ? 'Reprocessing' : 'Processing';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Processing completed! Generated ${result.processedSlices} slices.',
+                '$actionText completed! Generated ${result.processedSlices} slices.',
               ),
               backgroundColor: Colors.green,
               duration: const Duration(seconds: 4),

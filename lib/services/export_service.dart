@@ -273,7 +273,7 @@ class ExportService {
 
                 // Save as PNG file
                 final sliceFile = File(
-                    '${exportDir.path}/source_${sourceId}_slice_${sliceId}.png');
+                    '${exportDir.path}/source_${sourceId}_slice_$sliceId.png');
                 await sliceFile.writeAsBytes(bytes);
                 exportedSlices++;
               }
@@ -386,8 +386,9 @@ class ExportResult {
 
   String get fileSizeFormatted {
     if (fileSize < 1024) return '${fileSize}B';
-    if (fileSize < 1024 * 1024)
+    if (fileSize < 1024 * 1024) {
       return '${(fileSize / 1024).toStringAsFixed(1)}KB';
+    }
     return '${(fileSize / (1024 * 1024)).toStringAsFixed(1)}MB';
   }
 }

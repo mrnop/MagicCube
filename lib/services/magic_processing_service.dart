@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../magic_manager.dart';
+import '../utils/image_utils.dart';
 
 /// Service that handles the magic cube processing workflow:
 /// 1. Load source images from a project
@@ -16,6 +17,7 @@ class MagicProcessingService {
     required String projectPath,
     required String templatePath,
     void Function(String message)? onProgress,
+    bool forceReprocess = false,
   }) async {
     try {
       onProgress?.call('Loading template metadata...');
@@ -65,6 +67,24 @@ class MagicProcessingService {
         // Process all slices for this source
         final slices = sourceSpec['slices'] as List<dynamic>;
         for (final sliceSpec in slices) {
+          final sliceId = sliceSpec['id'] as int;
+
+          // Check if slice already exists and we're not forcing reprocess
+          if (!forceReprocess) {
+            try {
+              final existingSlice = await MagicManager.instance
+                  .loadSlice(projectPath, sourceId, sliceId);
+              if (existingSlice != null) {
+                processedSlices++;
+                onProgress?.call(
+                    'Slice $sliceId already exists - skipped ($processedSlices/$totalSlices)');
+                continue;
+              }
+            } catch (e) {
+              // Slice doesn't exist, continue with processing
+            }
+          }
+
           final sliceResult = await _processSlice(
             sourceImage: sourceImage,
             sliceSpec: sliceSpec as Map<String, dynamic>,
@@ -75,13 +95,14 @@ class MagicProcessingService {
 
           if (sliceResult) {
             processedSlices++;
-            onProgress?.call('Processed slice ${processedSlices}/$totalSlices');
+            final action = forceReprocess ? 'Reprocessed' : 'Processed';
+            onProgress?.call('$action slice $processedSlices/$totalSlices');
           }
         }
       }
 
-      onProgress
-          ?.call('Processing completed! Generated $processedSlices slices.');
+      final action = forceReprocess ? 'Reprocessing' : 'Processing';
+      onProgress?.call('$action completed! Generated $processedSlices slices.');
 
       return ProcessingResult.success(
         processedSlices: processedSlices,
@@ -161,18 +182,44 @@ class MagicProcessingService {
       final transforms = sliceSpec['transforms'] as List<dynamic>?;
 
       // Get expected source dimensions from meta.json
-      final expectedWidth = (sourceSpec['width'] as num).toDouble();
-      final expectedHeight = (sourceSpec['height'] as num).toDouble();
+      final expectedWidth = (sourceSpec['width'] as num).toInt();
+      final expectedHeight = (sourceSpec['height'] as num).toInt();
 
-      // Calculate scaling factors to match actual source image dimensions
-      final scaleX = sourceImage.width / expectedWidth;
-      final scaleY = sourceImage.height / expectedHeight;
+      debugPrint('Processing slice $sliceId for source $sourceId:');
+      debugPrint(
+          '  Expected dimensions from meta.json: ${expectedWidth}x$expectedHeight');
+      debugPrint(
+          '  Actual source image dimensions: ${sourceImage.width}x${sourceImage.height}');
+      debugPrint('  Original polygon from meta.json: $polygon');
 
-      // Extract and scale polygon coordinates
+      // Scale source image to fit the defined dimensions from meta.json
+      ui.Image workingImage = sourceImage;
+      final needsScaling = (sourceImage.width != expectedWidth) ||
+          (sourceImage.height != expectedHeight);
+
+      if (needsScaling) {
+        debugPrint(
+            '  Scaling source image from ${sourceImage.width}x${sourceImage.height} to ${expectedWidth}x$expectedHeight');
+
+        // Scale the source image to match meta.json dimensions
+        workingImage = await ImageUtils.scaleBitmap(
+                sourceImage, expectedWidth, expectedHeight) ??
+            sourceImage;
+
+        debugPrint(
+            '  Source scaled to: ${workingImage.width}x${workingImage.height}');
+      } else {
+        debugPrint(
+            '  No image scaling needed - source matches meta.json dimensions');
+      }
+
+      // Use original polygon coordinates (designed for meta.json dimensions)
       final points = polygon
-          .map((point) => Offset((point['x'] as num).toDouble() * scaleX,
-              (point['y'] as num).toDouble() * scaleY))
+          .map((point) => Offset(
+              (point['x'] as num).toDouble(), (point['y'] as num).toDouble()))
           .toList();
+
+      debugPrint('  Using original polygon coordinates: $points');
 
       if (points.length < 3) {
         debugPrint(
@@ -180,8 +227,8 @@ class MagicProcessingService {
         return false;
       }
 
-      // Extract the slice from the source image using the polygon
-      final sliceImage = await _extractPolygonSlice(sourceImage, points);
+      // Extract the slice from the scaled source image using the original polygon coordinates
+      final sliceImage = await _extractPolygonSlice(workingImage, points);
       if (sliceImage == null) {
         debugPrint('Failed to extract slice $sliceId');
         return false;
@@ -223,63 +270,90 @@ class MagicProcessingService {
   }
 
   /// Extract a polygonal slice from an image
+  /// Following the exact logic from Java MagicManager.cropPolygon()
   static Future<ui.Image?> _extractPolygonSlice(
       ui.Image sourceImage, List<Offset> polygon) async {
     try {
-      // Calculate bounding rectangle
+      if (polygon.isEmpty) return null;
+
+      // Calculate bounding rectangle (like Java minX, maxX, minY, maxY)
       final bounds = _getBoundingRect(polygon);
 
-      // Create a new image with the bounding rectangle dimensions
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder, bounds);
+      debugPrint('Extracting polygon slice:');
+      debugPrint('  Bounds: $bounds');
+      debugPrint('  Image size: ${sourceImage.width}x${sourceImage.height}');
+      debugPrint('  Polygon: $polygon');
 
-      // Clear with transparent background
-      canvas.drawRect(
-        Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-        Paint()..color = Colors.transparent,
-      );
+      // Step 1: Create a full-size image with clipping path applied
+      // Following Java: canvas.drawPath(path, paint) then paint.setXfermode(SRC_IN) then canvas.drawBitmap
+      final fullRecorder = ui.PictureRecorder();
+      final fullCanvas = Canvas(
+          fullRecorder,
+          Rect.fromLTWH(0, 0, sourceImage.width.toDouble(),
+              sourceImage.height.toDouble()));
 
-      // Create clipping path from polygon
+      // Create clipping path using original polygon coordinates
       final path = Path();
-      if (polygon.isNotEmpty) {
-        // Adjust polygon points relative to bounds
-        final adjustedPolygon = polygon
-            .map((point) =>
-                Offset(point.dx - bounds.left, point.dy - bounds.top))
-            .toList();
-
-        // Build path - ensure correct winding order for proper clipping
-        path.moveTo(adjustedPolygon[0].dx, adjustedPolygon[0].dy);
-        for (int i = 1; i < adjustedPolygon.length; i++) {
-          path.lineTo(adjustedPolygon[i].dx, adjustedPolygon[i].dy);
-        }
-        path.close();
-
-        // Set fill type to ensure proper clipping behavior
-        path.fillType = PathFillType.nonZero;
+      path.moveTo(polygon[0].dx, polygon[0].dy);
+      for (int i = 1; i < polygon.length; i++) {
+        path.lineTo(polygon[i].dx, polygon[i].dy);
       }
+      path.close();
+      path.fillType = PathFillType.nonZero;
 
-      // Save canvas state before clipping
-      canvas.save();
+      // Clear the canvas first
+      fullCanvas.drawRect(
+          Rect.fromLTWH(0, 0, sourceImage.width.toDouble(),
+              sourceImage.height.toDouble()),
+          Paint()..color = Colors.transparent);
 
-      // Apply clipping path
-      canvas.clipPath(path);
+      // Step 1a: Draw the path as a white mask (like Java: canvas.drawPath(path, paint))
+      final maskPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill
+        ..isAntiAlias = true;
+      fullCanvas.drawPath(path, maskPaint);
 
-      // Draw the source image, properly positioned within the bounds
-      canvas.drawImageRect(
-        sourceImage,
-        Rect.fromLTWH(
-            0, 0, sourceImage.width.toDouble(), sourceImage.height.toDouble()),
-        Rect.fromLTWH(-bounds.left, -bounds.top, sourceImage.width.toDouble(),
-            sourceImage.height.toDouble()),
+      // Step 1b: Draw the source image with SRC_IN blend mode
+      // (like Java: paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN)))
+      final srcInPaint = Paint()
+        ..blendMode = BlendMode.srcIn
+        ..filterQuality = FilterQuality.high;
+      fullCanvas.drawImage(sourceImage, Offset.zero, srcInPaint);
+
+      final fullPicture = fullRecorder.endRecording();
+      final fullImage =
+          await fullPicture.toImage(sourceImage.width, sourceImage.height);
+
+      // Step 2: Crop to bounding rectangle
+      // (Like Java: resultCanvas.drawBitmap(cropImage, -minX, -minY, new Paint()))
+      final resultRecorder = ui.PictureRecorder();
+      final resultCanvas = Canvas(
+          resultRecorder, Rect.fromLTWH(0, 0, bounds.width, bounds.height));
+
+      // Clear background
+      resultCanvas.drawRect(Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+          Paint()..color = Colors.transparent);
+
+      // Draw the full masked image at offset (-minX, -minY) like Java
+      // This crops the image by positioning it so the bounding rect becomes visible at (0,0)
+      resultCanvas.drawImage(
+        fullImage,
+        Offset(-bounds.left,
+            -bounds.top), // This is the (-minX, -minY) offset from Java
         Paint()..filterQuality = FilterQuality.high,
       );
 
-      // Restore canvas state
-      canvas.restore();
+      final resultPicture = resultRecorder.endRecording();
+      final result = await resultPicture.toImage(
+          bounds.width.toInt(), bounds.height.toInt());
 
-      final picture = recorder.endRecording();
-      return await picture.toImage(bounds.width.toInt(), bounds.height.toInt());
+      debugPrint('  Generated slice: ${result.width}x${result.height}');
+
+      // Clean up intermediate image
+      fullImage.dispose();
+
+      return result;
     } catch (e) {
       debugPrint('Error extracting polygon slice: $e');
       return null;
@@ -344,7 +418,7 @@ class MagicProcessingService {
               (point['x'] as num).toDouble(), (point['y'] as num).toDouble()))
           .toList();
 
-      // Calculate output size
+      // Calculate output size based on bounding rectangle
       final bounds = _getBoundingRect(dest);
       final outputWidth = bounds.width.toInt();
       final outputHeight = bounds.height.toInt();
@@ -353,23 +427,41 @@ class MagicProcessingService {
 
       // Create transformed image
       final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder,
-          Rect.fromLTWH(0, 0, outputWidth.toDouble(), outputHeight.toDouble()));
+      final canvas = Canvas(recorder, bounds);
 
       // Clear background
       canvas.drawRect(
-        Rect.fromLTWH(0, 0, outputWidth.toDouble(), outputHeight.toDouble()),
+        Rect.fromLTWH(0, 0, bounds.width, bounds.height),
         Paint()..color = Colors.transparent,
       );
 
-      // Create transformation matrix (simplified perspective)
-      // For now, we'll scale and position the image to fit the destination bounds
-      final scaleX = outputWidth / image.width;
-      final scaleY = outputHeight / image.height;
+      // Adjust destination points relative to bounds
+      final adjustedDest = dest
+          .map((point) => Offset(point.dx - bounds.left, point.dy - bounds.top))
+          .toList();
+
+      // Apply perspective transformation using a path and clipping
+      // This is a simplified approach - for true perspective mapping,
+      // we'd need matrix transformation which is complex in Flutter's canvas
+      final path = Path();
+      path.moveTo(adjustedDest[0].dx, adjustedDest[0].dy);
+      for (int i = 1; i < adjustedDest.length; i++) {
+        path.lineTo(adjustedDest[i].dx, adjustedDest[i].dy);
+      }
+      path.close();
 
       canvas.save();
-      canvas.scale(scaleX, scaleY);
-      canvas.drawImage(image, Offset.zero, Paint());
+      canvas.clipPath(path);
+
+      // For now, use a simple scaling approach that fits the image to the dest bounds
+      final destBounds = _getBoundingRect(adjustedDest);
+      canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        destBounds,
+        Paint()..filterQuality = FilterQuality.high,
+      );
+
       canvas.restore();
 
       final picture = recorder.endRecording();
@@ -381,25 +473,17 @@ class MagicProcessingService {
   }
 
   /// Apply rotation transformation to an image
+  /// Uses ImageUtils.rotateBitmap for consistency with Java implementation
   static Future<ui.Image?> _applyRotationTransform(
       ui.Image image, Map<String, dynamic>? params) async {
     if (params == null || !params.containsKey('angle')) return image;
 
     try {
       final angle = (params['angle'] as num).toDouble();
-      final radians = angle * (3.14159 / 180.0); // Convert to radians
 
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder,
-          Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()));
-
-      canvas.translate(image.width / 2, image.height / 2);
-      canvas.rotate(radians);
-      canvas.translate(-image.width / 2, -image.height / 2);
-      canvas.drawImage(image, Offset.zero, Paint());
-
-      final picture = recorder.endRecording();
-      return await picture.toImage(image.width, image.height);
+      // Use ImageUtils for consistent rotation with Java implementation
+      // Note: ImageUtils.rotateBitmap handles dimension calculation and trimming
+      return await ImageUtils.rotateBitmap(image, angle, recycle: false);
     } catch (e) {
       debugPrint('Error applying rotation transform: $e');
       return null;
@@ -407,6 +491,7 @@ class MagicProcessingService {
   }
 
   /// Apply scale transformation to an image
+  /// Uses ImageUtils.scaleBitmap for consistency with Java implementation
   static Future<ui.Image?> _applyScaleTransform(
       ui.Image image, Map<String, dynamic>? params) async {
     if (params == null) return image;
@@ -420,15 +505,8 @@ class MagicProcessingService {
 
       if (newWidth <= 0 || newHeight <= 0) return image;
 
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder,
-          Rect.fromLTWH(0, 0, newWidth.toDouble(), newHeight.toDouble()));
-
-      canvas.scale(scaleX, scaleY);
-      canvas.drawImage(image, Offset.zero, Paint());
-
-      final picture = recorder.endRecording();
-      return await picture.toImage(newWidth, newHeight);
+      // Use ImageUtils for consistent scaling with Java implementation
+      return await ImageUtils.scaleBitmap(image, newWidth, newHeight);
     } catch (e) {
       debugPrint('Error applying scale transform: $e');
       return null;
@@ -439,6 +517,34 @@ class MagicProcessingService {
   static Future<bool> hasSourceImages(String projectPath) async {
     final sourceImages = await _loadProjectSourceImages(projectPath);
     return sourceImages.isNotEmpty;
+  }
+
+  /// Check if a project can be reprocessed (has existing processed slices)
+  static Future<bool> canReprocess(
+      String projectPath, String templatePath) async {
+    final status = await getProcessingStatus(projectPath, templatePath);
+    return status.isProcessed && status.processedSlices > 0;
+  }
+
+  /// Get a simple boolean indicating if any slices exist for a project
+  static Future<bool> hasProcessedSlices(String projectPath) async {
+    try {
+      final projectDir =
+          Directory('${MagicManager.instance.workDir.path}/$projectPath');
+      if (!projectDir.existsSync()) return false;
+
+      // Check if any subdirectories contain .png files
+      final subdirs = projectDir.listSync().whereType<Directory>();
+      for (final subdir in subdirs) {
+        final pngFiles = subdir.listSync().where(
+            (file) => file is File && file.path.toLowerCase().endsWith('.png'));
+        if (pngFiles.isNotEmpty) return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking for processed slices: $e');
+      return false;
+    }
   }
 
   /// Get processing status for a project
@@ -484,6 +590,21 @@ class MagicProcessingService {
     } catch (e) {
       return ProcessingStatus(
           isProcessed: false, error: 'Error checking status: $e');
+    }
+  }
+
+  /// Apply simple rotation by angle (used for page layout rotations)
+  /// Uses ImageUtils.rotateBitmap for consistency with Java implementation
+  static Future<ui.Image?> rotateImage(
+      ui.Image image, double angleDegrees) async {
+    if (angleDegrees == 0) return image;
+
+    try {
+      // Use ImageUtils for consistent rotation with Java implementation
+      return await ImageUtils.rotateBitmap(image, angleDegrees, recycle: false);
+    } catch (e) {
+      debugPrint('Error rotating image: $e');
+      return null;
     }
   }
 }
