@@ -4,59 +4,58 @@
   "icon" : "icon.png",
   "description" : "Kaleidocycle",
   "sources":[
-    {"id":1 , "width":888,"height":800, "mask" :"mask.png",
+    {"id":1 , "width":888,"height":802, "mask" :"mask.png",
       "slices":[
-        {"id":1 ,"polygon": [{"x":0, "y": 442},{"x":460, "y": 414},{"x":714, "y": 798},{"x":268, "y": 798}] ,
-          "transforms":[{ "type":"perspective" , "params": {"dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]
-            }}
+       {"id":1 ,"polygon": [{"x":10, "y": 437},{"x":455, "y": 412},{"x":708, "y": 790},{"x":268, "y": 790}] ,
+          "transforms":[{ "type":"perspective" , "params": {"dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
           ] },
-        {"id":2 ,"polygon": [{"x":666, "y": 0},{"x":460, "y": 414}, {"x":0, "y": 440},{"x":224, "y": 54}] ,
-          "transforms":[{ "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
+        {"id":2 ,"polygon": [{"x":650, "y": 0},{"x":460, "y": 412}, {"x":10, "y": 437},{"x":222, "y": 54}] ,
+          "transforms":[{ "type":"rotate" , "params": { "angle": 240}}, { "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
           ]},
-        {"id":3 ,"polygon": [{"x":714, "y": 798},{"x":460, "y": 414},{"x":666, "y": 0},{"x":888, "y": 386}],
-          "transforms":[{ "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
+        {"id":3 ,"polygon": [{"x":708, "y": 790},{"x":460, "y": 412},{"x":650, "y": 0},{"x":888, "y": 380}],
+          "transforms":[{ "type":"rotate" , "params": { "angle": -120}}, { "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
           ]}
       ]
     },
-    {"id":2 , "width":888,"height":800, "mask" :"mask.png",
+    {"id":2 , "width":888,"height":802, "mask" :"mask.png",
       "slices":[
-        {"id":1 ,"polygon": [{"x":0, "y": 442},{"x":460, "y": 414},{"x":714, "y": 798},{"x":268, "y": 798}] ,
+        {"id":1 ,"polygon": [{"x":10, "y": 437},{"x":455, "y": 412},{"x":708, "y": 790},{"x":268, "y": 790}] ,
           "transforms":[{ "type":"perspective" , "params": {"dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]
           }}
           ] },
-        {"id":2 ,"polygon": [{"x":666, "y": 0},{"x":460, "y": 414}, {"x":0, "y": 440},{"x":224, "y": 54}] ,
-          "transforms":[{ "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
+        {"id":2 ,"polygon": [{"x":650, "y": 0},{"x":460, "y": 412}, {"x":0, "y": 440},{"x":222, "y": 54}] ,
+          "transforms":[{ "type":"rotate" , "params": { "angle": 240}}, { "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
           ]},
-        {"id":3 ,"polygon": [{"x":714, "y": 798},{"x":460, "y": 414},{"x":666, "y": 0},{"x":888, "y": 386}],
-          "transforms":[{ "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
+        {"id":3 ,"polygon": [{"x":708, "y": 790},{"x":460, "y": 412},{"x":650, "y": 0},{"x":888, "y": 380}],
+          "transforms":[{ "type":"rotate" , "params": { "angle": -120}}, { "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
           ]}
       ]
     },
-    {"id":3 , "width":888,"height":800, "mask" :"mask.png",
+    {"id":3 , "width":888,"height":802, "mask" :"mask.png",
       "slices":[
-        {"id":1 ,"polygon": [{"x":0, "y": 442},{"x":460, "y": 414},{"x":714, "y": 798},{"x":268, "y": 798}] ,
+        {"id":1 ,"polygon": [{"x":10, "y": 437},{"x":455, "y": 412},{"x":708, "y": 790},{"x":268, "y": 790}] ,
           "transforms":[{ "type":"perspective" , "params": {"dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]
           }}
           ] },
-        {"id":2 ,"polygon": [{"x":666, "y": 0},{"x":460, "y": 414}, {"x":0, "y": 440},{"x":224, "y": 54}] ,
-          "transforms":[{ "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
+        {"id":2 ,"polygon": [{"x":650, "y": 0},{"x":460, "y": 412}, {"x":0, "y": 440},{"x":222, "y": 54}] ,
+          "transforms":[{ "type":"rotate" , "params": { "angle": 240}}, { "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
           ]},
-        {"id":3 ,"polygon": [{"x":714, "y": 798},{"x":460, "y": 414},{"x":666, "y": 0},{"x":888, "y": 386}],
-          "transforms":[{ "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
+        {"id":3 ,"polygon": [{"x":708, "y": 790},{"x":460, "y": 412},{"x":650, "y": 0},{"x":888, "y": 380}],
+          "transforms":[{ "type":"rotate" , "params": { "angle": -120}}, { "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
           ]}
       ]
     },
     {"id":4 , "width":888,"height":800, "mask" :"mask.png",
       "slices":[
-        {"id":1 ,"polygon": [{"x":0, "y": 442},{"x":460, "y": 414},{"x":714, "y": 798},{"x":268, "y": 798}] ,
+        {"id":1 ,"polygon": [{"x":10, "y": 437},{"x":455, "y": 412},{"x":708, "y": 790},{"x":268, "y": 790}] ,
           "transforms":[{ "type":"perspective" , "params": {"dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]
           }}
           ] },
-        {"id":2 ,"polygon": [{"x":666, "y": 0},{"x":460, "y": 414}, {"x":0, "y": 440},{"x":224, "y": 54}] ,
-          "transforms":[{ "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
+        {"id":2 ,"polygon": [{"x":650, "y": 0},{"x":460, "y": 412}, {"x":0, "y": 440},{"x":222, "y": 54}] ,
+          "transforms":[{ "type":"rotate" , "params": { "angle": 240}}, { "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
           ]},
-        {"id":3 ,"polygon": [{"x":714, "y": 798},{"x":460, "y": 414},{"x":666, "y": 0},{"x":888, "y": 386}],
-          "transforms":[{ "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
+        {"id":3 ,"polygon": [{"x":708, "y": 790},{"x":460, "y": 412},{"x":650, "y": 0},{"x":888, "y": 380}],
+          "transforms":[{ "type":"rotate" , "params": { "angle": -120}}, { "type":"perspective" , "params": { "dest": [{"x":0,"y":0},{"x":449,"y":0},{"x":714,"y":364},{"x":266,"y":364}]}}
           ]}
       ]
     }

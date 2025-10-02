@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
@@ -8,6 +9,50 @@ import '../models/magic.dart';
 import '../models/page.dart';
 import '../services/magic_manager.dart';
 import '../utils/image_utils.dart';
+
+/// Debug configuration for page builder
+class PageBuilderDebugConfig {
+  static bool enableSliceDebugging =
+      true; // Always enabled for debugging slices
+  static bool showSliceBoundaries = true;
+  static bool showSliceLabels = true;
+  static bool showSliceCenters = true;
+  static bool showCornerMarkers = true;
+
+  /// Colors for debug visualization
+  static const Color boundaryColor = Colors.red;
+  static const Color centerColor = Colors.blue;
+  static const Color labelBackgroundColor = Colors.yellow;
+  static const Color cornerColor = Colors.green;
+
+  /// Enable all debug features
+  static void enableAllDebugging() {
+    enableSliceDebugging = true;
+    showSliceBoundaries = true;
+    showSliceLabels = true;
+    showSliceCenters = true;
+    showCornerMarkers = true;
+  }
+
+  /// Disable all debug features
+  static void disableAllDebugging() {
+    enableSliceDebugging = false;
+    showSliceBoundaries = false;
+    showSliceLabels = false;
+    showSliceCenters = false;
+    showCornerMarkers = false;
+  }
+
+  /// Print current debug configuration
+  static void printConfig() {
+    debugPrint('PageBuilder Debug Configuration:');
+    debugPrint('  enableSliceDebugging: $enableSliceDebugging');
+    debugPrint('  showSliceBoundaries: $showSliceBoundaries');
+    debugPrint('  showSliceLabels: $showSliceLabels');
+    debugPrint('  showSliceCenters: $showSliceCenters');
+    debugPrint('  showCornerMarkers: $showCornerMarkers');
+  }
+}
 
 /// Result of page building operation
 class PagePreview {
@@ -439,8 +484,120 @@ class PageBuilderService {
 
       // Draw the slice
       canvas.drawImage(sliceImage, Offset(x, y), Paint());
+
+      // Debug mode: Draw slice boundaries and labels
+      if (PageBuilderDebugConfig.enableSliceDebugging) {
+        _drawSliceDebugInfo(canvas, sliceImage, face, x, y);
+      }
     } catch (e) {
       debugPrint('Error building face: $e');
+    }
+  }
+
+  /// Draw debug information for slices to make them visible
+  static void _drawSliceDebugInfo(
+    Canvas canvas,
+    ui.Image sliceImage,
+    PageFace face,
+    double x,
+    double y,
+  ) {
+    // Draw slice boundary
+    if (PageBuilderDebugConfig.showSliceBoundaries) {
+      final boundaryPaint = Paint()
+        ..color = PageBuilderDebugConfig.boundaryColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0;
+
+      final sliceRect = Rect.fromLTWH(
+        x,
+        y,
+        sliceImage.width.toDouble(),
+        sliceImage.height.toDouble(),
+      );
+
+      canvas.drawRect(sliceRect, boundaryPaint);
+    }
+
+    // Draw slice center crosshair
+    if (PageBuilderDebugConfig.showSliceCenters) {
+      final centerPaint = Paint()
+        ..color = PageBuilderDebugConfig.centerColor
+        ..strokeWidth = 2.0;
+
+      final centerX = x + sliceImage.width / 2;
+      final centerY = y + sliceImage.height / 2;
+      final crossSize = 20.0;
+
+      // Horizontal line
+      canvas.drawLine(
+        Offset(centerX - crossSize, centerY),
+        Offset(centerX + crossSize, centerY),
+        centerPaint,
+      );
+
+      // Vertical line
+      canvas.drawLine(
+        Offset(centerX, centerY - crossSize),
+        Offset(centerX, centerY + crossSize),
+        centerPaint,
+      );
+    }
+
+    // Draw slice information label
+    if (PageBuilderDebugConfig.showSliceLabels) {
+      final labelBackgroundPaint = Paint()
+        ..color =
+            PageBuilderDebugConfig.labelBackgroundColor.withValues(alpha: 0.8);
+
+      final labelText =
+          'S${face.source}:${face.slice}\nAngle: ${face.angle}°\nPos: (${face.x}, ${face.y})\nSize: ${sliceImage.width}x${sliceImage.height}';
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: labelText,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'monospace',
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+
+      textPainter.layout();
+
+      // Position label at top-left of slice with some padding
+      final labelOffset = Offset(x + 5, y + 5);
+      final labelRect = Rect.fromLTWH(
+        labelOffset.dx - 2,
+        labelOffset.dy - 2,
+        textPainter.width + 4,
+        textPainter.height + 4,
+      );
+
+      canvas.drawRect(labelRect, labelBackgroundPaint);
+      textPainter.paint(canvas, labelOffset);
+    }
+
+    // Draw corner markers
+    if (PageBuilderDebugConfig.showCornerMarkers) {
+      final cornerPaint = Paint()
+        ..color = PageBuilderDebugConfig.cornerColor
+        ..style = PaintingStyle.fill;
+
+      final cornerSize = 6.0;
+      final corners = [
+        Offset(x, y), // Top-left
+        Offset(x + sliceImage.width, y), // Top-right
+        Offset(x, y + sliceImage.height), // Bottom-left
+        Offset(x + sliceImage.width, y + sliceImage.height), // Bottom-right
+      ];
+
+      for (final corner in corners) {
+        canvas.drawCircle(corner, cornerSize / 2, cornerPaint);
+      }
     }
   }
 

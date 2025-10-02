@@ -64,6 +64,30 @@ class MagicProcessingService {
         onProgress?.call(
             'Processing source $sourceId (${sourceIndex + 1}/${sources.length})...');
 
+        // Scale source image to match meta.json dimensions before processing slices
+        ui.Image scaledSourceImage = sourceImage;
+        final expectedWidth = (sourceSpec['width'] as num).toInt();
+        final expectedHeight = (sourceSpec['height'] as num).toInt();
+
+        final needsScaling = (sourceImage.width != expectedWidth) ||
+            (sourceImage.height != expectedHeight);
+
+        if (needsScaling) {
+          debugPrint(
+              'Scaling source $sourceId from ${sourceImage.width}x${sourceImage.height} to ${expectedWidth}x$expectedHeight');
+
+          // Scale the source image to match meta.json dimensions
+          scaledSourceImage = await ImageUtils.scaleBitmap(
+                  sourceImage, expectedWidth, expectedHeight) ??
+              sourceImage;
+
+          debugPrint(
+              'Source $sourceId scaled to: ${scaledSourceImage.width}x${scaledSourceImage.height}');
+        } else {
+          debugPrint(
+              'Source $sourceId - no scaling needed (${sourceImage.width}x${sourceImage.height})');
+        }
+
         // Process all slices for this source
         final slices = sourceSpec['slices'] as List<dynamic>;
         for (final sliceSpec in slices) {
@@ -86,7 +110,7 @@ class MagicProcessingService {
           }
 
           final sliceResult = await _processSlice(
-            sourceImage: sourceImage,
+            sourceImage: scaledSourceImage,
             sliceSpec: sliceSpec as Map<String, dynamic>,
             sourceSpec: sourceSpec,
             projectPath: projectPath,
@@ -181,45 +205,18 @@ class MagicProcessingService {
       final polygon = sliceSpec['polygon'] as List<dynamic>;
       final transforms = sliceSpec['transforms'] as List<dynamic>?;
 
-      // Get expected source dimensions from meta.json
-      final expectedWidth = (sourceSpec['width'] as num).toInt();
-      final expectedHeight = (sourceSpec['height'] as num).toInt();
-
       debugPrint('Processing slice $sliceId for source $sourceId:');
       debugPrint(
-          '  Expected dimensions from meta.json: ${expectedWidth}x$expectedHeight');
-      debugPrint(
-          '  Actual source image dimensions: ${sourceImage.width}x${sourceImage.height}');
-      debugPrint('  Original polygon from meta.json: $polygon');
+          '  Source image dimensions: ${sourceImage.width}x${sourceImage.height}');
+      debugPrint('  Polygon coordinates: $polygon');
 
-      // Scale source image to fit the defined dimensions from meta.json
-      ui.Image workingImage = sourceImage;
-      final needsScaling = (sourceImage.width != expectedWidth) ||
-          (sourceImage.height != expectedHeight);
-
-      if (needsScaling) {
-        debugPrint(
-            '  Scaling source image from ${sourceImage.width}x${sourceImage.height} to ${expectedWidth}x$expectedHeight');
-
-        // Scale the source image to match meta.json dimensions
-        workingImage = await ImageUtils.scaleBitmap(
-                sourceImage, expectedWidth, expectedHeight) ??
-            sourceImage;
-
-        debugPrint(
-            '  Source scaled to: ${workingImage.width}x${workingImage.height}');
-      } else {
-        debugPrint(
-            '  No image scaling needed - source matches meta.json dimensions');
-      }
-
-      // Use original polygon coordinates (designed for meta.json dimensions)
+      // Convert polygon coordinates to Offset points
       final points = polygon
           .map((point) => Offset(
               (point['x'] as num).toDouble(), (point['y'] as num).toDouble()))
           .toList();
 
-      debugPrint('  Using original polygon coordinates: $points');
+      debugPrint('  Using polygon coordinates: $points');
 
       if (points.length < 3) {
         debugPrint(
@@ -227,8 +224,8 @@ class MagicProcessingService {
         return false;
       }
 
-      // Extract the slice from the scaled source image using the original polygon coordinates
-      final sliceImage = await _extractPolygonSlice(workingImage, points);
+      // Extract the slice from the source image using the polygon coordinates
+      final sliceImage = await _extractPolygonSlice(sourceImage, points);
       if (sliceImage == null) {
         debugPrint('Failed to extract slice $sliceId');
         return false;
@@ -404,6 +401,7 @@ class MagicProcessingService {
   }
 
   /// Apply perspective transformation to an image
+  /// Fits the slice image inside the destination polygon bounds without clipping
   static Future<ui.Image?> _applyPerspectiveTransform(
       ui.Image image, Map<String, dynamic>? params) async {
     if (params == null || !params.containsKey('dest')) return image;
@@ -418,51 +416,38 @@ class MagicProcessingService {
               (point['x'] as num).toDouble(), (point['y'] as num).toDouble()))
           .toList();
 
-      // Calculate output size based on bounding rectangle
+      // Calculate bounding rectangle of destination points
       final bounds = _getBoundingRect(dest);
       final outputWidth = bounds.width.toInt();
       final outputHeight = bounds.height.toInt();
 
       if (outputWidth <= 0 || outputHeight <= 0) return image;
 
-      // Create transformed image
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder, bounds);
+      // Normalize destination points to start from (0,0)
+      final normalizedDest = dest
+          .map((point) => Offset(point.dx - bounds.left, point.dy - bounds.top))
+          .toList();
 
-      // Clear background
+      // Create output canvas
+      final recorder = ui.PictureRecorder();
+      final canvas =
+          Canvas(recorder, Rect.fromLTWH(0, 0, bounds.width, bounds.height));
+
+      // Clear background to transparent
       canvas.drawRect(
         Rect.fromLTWH(0, 0, bounds.width, bounds.height),
         Paint()..color = Colors.transparent,
       );
 
-      // Adjust destination points relative to bounds
-      final adjustedDest = dest
-          .map((point) => Offset(point.dx - bounds.left, point.dy - bounds.top))
-          .toList();
-
-      // Apply perspective transformation using a path and clipping
-      // This is a simplified approach - for true perspective mapping,
-      // we'd need matrix transformation which is complex in Flutter's canvas
-      final path = Path();
-      path.moveTo(adjustedDest[0].dx, adjustedDest[0].dy);
-      for (int i = 1; i < adjustedDest.length; i++) {
-        path.lineTo(adjustedDest[i].dx, adjustedDest[i].dy);
-      }
-      path.close();
-
-      canvas.save();
-      canvas.clipPath(path);
-
-      // For now, use a simple scaling approach that fits the image to the dest bounds
-      final destBounds = _getBoundingRect(adjustedDest);
+      // Scale and position the slice image to fit within the destination polygon bounds
+      // No clipping - just fit the image to the bounding rectangle
       canvas.drawImageRect(
         image,
         Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-        destBounds,
+        _getBoundingRect(
+            normalizedDest), // Fit within the polygon's bounding rect
         Paint()..filterQuality = FilterQuality.high,
       );
-
-      canvas.restore();
 
       final picture = recorder.endRecording();
       return await picture.toImage(outputWidth, outputHeight);

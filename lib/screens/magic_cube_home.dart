@@ -13,6 +13,7 @@ import '../example/crop_example.dart';
 import 'processing_test_screen.dart';
 import 'export_test_screen.dart';
 import 'page_builder_test_screen.dart';
+import 'slice_debug_test_screen.dart';
 
 class MagicCubeHome extends StatefulWidget {
   const MagicCubeHome({super.key});
@@ -223,6 +224,13 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
             onPressed: _testPageBuilderFunctionality,
             tooltip: 'Test Page Builder',
             child: const Icon(Icons.article),
+          ),
+          const SizedBox(width: 16),
+          FloatingActionButton(
+            heroTag: "test_slice_debug",
+            onPressed: _testSliceDebugFunctionality,
+            tooltip: 'Test Slice Debug',
+            child: const Icon(Icons.bug_report),
           ),
           const SizedBox(width: 16),
           FloatingActionButton.extended(
@@ -617,6 +625,15 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
       context,
       MaterialPageRoute(
         builder: (context) => const PageBuilderTestScreen(),
+      ),
+    );
+  }
+
+  void _testSliceDebugFunctionality() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SliceDebugTestScreen(),
       ),
     );
   }
