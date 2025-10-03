@@ -21,7 +21,7 @@
         { "source": 2, "slice":2, "x": 122, "y": 890, "angle" : -90 },
         { "source": 2, "slice":1, "x": 122, "y": 1240, "angle" : -90},
 
-        { "source": 3, "slice":2, "x": 206 , "y": 1055, "angle" : -90},
+        { "source": 3, "slice":2, "x": 206 , "y": 1065, "angle" : -90},
         { "source": 3, "slice":3, "x": 206, "y": 715, "angle" : 270},
         { "source": 3, "slice":1, "x": 206, "y": 365, "angle" : -90 },
         
