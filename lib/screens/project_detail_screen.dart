@@ -83,12 +83,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               title: 'Project Information',
               children: [
                 _buildInfoRow('Name', widget.save.name),
-                _buildInfoRow('Template', widget.save.magic),
-                _buildInfoRow('Author', widget.save.author),
+                // _buildInfoRow('Template', widget.save.magic),
+                // _buildInfoRow('Author', widget.save.author),
                 _buildInfoRow('Created', _formatDate(widget.save.created)),
                 _buildInfoRow('Updated', _formatDate(widget.save.updated)),
-                if (widget.save.path != null)
-                  _buildInfoRow('Path', widget.save.path!),
+                // if (widget.save.path != null)
+                //   _buildInfoRow('Path', widget.save.path!),
               ],
             ),
             const SizedBox(height: 16),
@@ -805,8 +805,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Project: ${widget.save.name}'),
-            const SizedBox(height: 8),
-            Text('Template: ${widget.save.magic}'),
+            // const SizedBox(height: 8),
+            // Text('Template: ${widget.save.magic}'),
             const SizedBox(height: 8),
             Text(
                 'Status: ${_processingStatus?.isProcessed == true ? 'Processed' : 'Not processed'}'),
@@ -814,10 +814,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               const SizedBox(height: 8),
               Text('Slices: $processed/$total processed'),
             ],
-            if (widget.save.path != null) ...[
-              const SizedBox(height: 8),
-              Text('Path: ${widget.save.path}'),
-            ],
+            // if (widget.save.path != null) ...[
+            //   const SizedBox(height: 8),
+            //   Text('Path: ${widget.save.path}'),
+            // ],
           ],
         ),
         actions: [
