@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -383,5 +384,240 @@ class ImageUtils {
       debugPrint('Error loading bitmap from file: $e');
       return null;
     }
+  }
+
+  /// Applies perspective transformation to warp source image to destination quadrilateral
+  /// Flutter equivalent of Android's Matrix.setPolyToPoly() for perspective warp
+  ///
+  /// Parameters:
+  /// - source: The source image to transform
+  /// - srcQuad: Four corner points of source quadrilateral (top-left, top-right, bottom-right, bottom-left)
+  /// - dstQuad: Four corner points of destination quadrilateral (top-left, top-right, bottom-right, bottom-left)
+  /// - outputWidth: Width of output image
+  /// - outputHeight: Height of output image
+  static Future<ui.Image?> warpPerspective(
+    ui.Image source,
+    List<Offset> srcQuad,
+    List<Offset> dstQuad,
+    int outputWidth,
+    int outputHeight,
+  ) async {
+    if (srcQuad.length != 4 || dstQuad.length != 4) {
+      debugPrint('warpPerspective requires exactly 4 points for src and dst');
+      return null;
+    }
+
+    try {
+      // Calculate the perspective transformation matrix (homography)
+      // This maps from destination to source (inverse mapping for sampling)
+      final matrix = _calculateHomography(dstQuad, srcQuad);
+      if (matrix == null) {
+        debugPrint('Failed to calculate homography matrix');
+        return null;
+      }
+
+      // Get source pixel data
+      final srcByteData =
+          await source.toByteData(format: ui.ImageByteFormat.rawRgba);
+      if (srcByteData == null) return null;
+
+      final srcPixels = srcByteData.buffer.asUint8List();
+      final srcWidth = source.width;
+      final srcHeight = source.height;
+
+      // Create output pixel buffer
+      final dstPixels = Uint8List(outputWidth * outputHeight * 4);
+
+      // Apply perspective transformation by inverse mapping
+      for (int y = 0; y < outputHeight; y++) {
+        for (int x = 0; x < outputWidth; x++) {
+          // Map destination pixel (x,y) to source coordinates using homography
+          final srcPoint = _applyHomography(matrix, x.toDouble(), y.toDouble());
+          final srcX = srcPoint.dx;
+          final srcY = srcPoint.dy;
+
+          // Check if source coordinates are within bounds
+          if (srcX >= 0 &&
+              srcX < srcWidth - 1 &&
+              srcY >= 0 &&
+              srcY < srcHeight - 1) {
+            // Bilinear interpolation for smooth sampling
+            final color =
+                _bilinearSample(srcPixels, srcWidth, srcHeight, srcX, srcY);
+
+            final dstIndex = (y * outputWidth + x) * 4;
+            dstPixels[dstIndex] = color[0]; // R
+            dstPixels[dstIndex + 1] = color[1]; // G
+            dstPixels[dstIndex + 2] = color[2]; // B
+            dstPixels[dstIndex + 3] = color[3]; // A
+          }
+          // else: pixel remains transparent (default 0)
+        }
+      }
+
+      // Create image from pixel data
+      final codec = await ui.instantiateImageCodec(
+        dstPixels,
+        targetWidth: outputWidth,
+        targetHeight: outputHeight,
+      );
+      final frame = await codec.getNextFrame();
+      return frame.image;
+    } catch (e) {
+      debugPrint('Error in warpPerspective: $e');
+      return null;
+    }
+  }
+
+  /// Calculate 3x3 homography matrix from source to destination quad
+  /// Using Direct Linear Transform (DLT) algorithm
+  static List<double>? _calculateHomography(
+      List<Offset> src, List<Offset> dst) {
+    // We need to solve for 8 unknowns (h11..h33, with h33=1 for normalization)
+    // Each point correspondence gives us 2 equations
+    // 4 points give us 8 equations
+
+    // Build the equation matrix A and vector b for Ah = b
+    final a = List.generate(8, (_) => List.filled(8, 0.0));
+    final b = List.filled(8, 0.0);
+
+    for (int i = 0; i < 4; i++) {
+      final sx = src[i].dx;
+      final sy = src[i].dy;
+      final dx = dst[i].dx;
+      final dy = dst[i].dy;
+
+      // First equation for this point
+      a[i * 2][0] = sx;
+      a[i * 2][1] = sy;
+      a[i * 2][2] = 1;
+      a[i * 2][6] = -dx * sx;
+      a[i * 2][7] = -dx * sy;
+      b[i * 2] = dx;
+
+      // Second equation for this point
+      a[i * 2 + 1][3] = sx;
+      a[i * 2 + 1][4] = sy;
+      a[i * 2 + 1][5] = 1;
+      a[i * 2 + 1][6] = -dy * sx;
+      a[i * 2 + 1][7] = -dy * sy;
+      b[i * 2 + 1] = dy;
+    }
+
+    // Solve using Gaussian elimination
+    final h = _gaussianElimination(a, b);
+    if (h == null) return null;
+
+    // Construct 3x3 homography matrix
+    // [h[0], h[1], h[2]]
+    // [h[3], h[4], h[5]]
+    // [h[6], h[7],   1 ]
+    return [h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], 1.0];
+  }
+
+  /// Solve linear system using Gaussian elimination with partial pivoting
+  static List<double>? _gaussianElimination(
+      List<List<double>> a, List<double> b) {
+    final n = a.length;
+    final aug = List.generate(
+        n, (i) => List<double>.from([...a[i], b[i]])); // Augmented matrix
+
+    // Forward elimination with partial pivoting
+    for (int col = 0; col < n; col++) {
+      // Find pivot
+      int maxRow = col;
+      for (int row = col + 1; row < n; row++) {
+        if (aug[row][col].abs() > aug[maxRow][col].abs()) {
+          maxRow = row;
+        }
+      }
+
+      // Swap rows
+      if (maxRow != col) {
+        final temp = aug[col];
+        aug[col] = aug[maxRow];
+        aug[maxRow] = temp;
+      }
+
+      // Check for singular matrix
+      if (aug[col][col].abs() < 1e-10) {
+        return null;
+      }
+
+      // Eliminate column
+      for (int row = col + 1; row < n; row++) {
+        final factor = aug[row][col] / aug[col][col];
+        for (int j = col; j <= n; j++) {
+          aug[row][j] -= factor * aug[col][j];
+        }
+      }
+    }
+
+    // Back substitution
+    final x = List.filled(n, 0.0);
+    for (int i = n - 1; i >= 0; i--) {
+      x[i] = aug[i][n];
+      for (int j = i + 1; j < n; j++) {
+        x[i] -= aug[i][j] * x[j];
+      }
+      x[i] /= aug[i][i];
+    }
+
+    return x;
+  }
+
+  /// Apply homography matrix to transform a point
+  static Offset _applyHomography(List<double> h, double x, double y) {
+    // Homography transformation:
+    // x' = (h[0]*x + h[1]*y + h[2]) / (h[6]*x + h[7]*y + h[8])
+    // y' = (h[3]*x + h[4]*y + h[5]) / (h[6]*x + h[7]*y + h[8])
+    final w = h[6] * x + h[7] * y + h[8];
+    final newX = (h[0] * x + h[1] * y + h[2]) / w;
+    final newY = (h[3] * x + h[4] * y + h[5]) / w;
+    return Offset(newX, newY);
+  }
+
+  /// Bilinear interpolation for smooth pixel sampling
+  static List<int> _bilinearSample(
+      Uint8List pixels, int width, int height, double x, double y) {
+    final x0 = x.floor();
+    final y0 = y.floor();
+    final x1 = x0 + 1;
+    final y1 = y0 + 1;
+
+    final dx = x - x0;
+    final dy = y - y0;
+
+    // Get the four surrounding pixels
+    final p00 = _getPixel(pixels, width, height, x0, y0);
+    final p10 = _getPixel(pixels, width, height, x1, y0);
+    final p01 = _getPixel(pixels, width, height, x0, y1);
+    final p11 = _getPixel(pixels, width, height, x1, y1);
+
+    // Interpolate
+    final result = List.filled(4, 0);
+    for (int c = 0; c < 4; c++) {
+      final v0 = p00[c] * (1 - dx) + p10[c] * dx;
+      final v1 = p01[c] * (1 - dx) + p11[c] * dx;
+      result[c] = (v0 * (1 - dy) + v1 * dy).round();
+    }
+
+    return result;
+  }
+
+  /// Get pixel color at coordinates (with bounds checking)
+  static List<int> _getPixel(
+      Uint8List pixels, int width, int height, int x, int y) {
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+      return [0, 0, 0, 0]; // Transparent black
+    }
+
+    final index = (y * width + x) * 4;
+    return [
+      pixels[index], // R
+      pixels[index + 1], // G
+      pixels[index + 2], // B
+      pixels[index + 3], // A
+    ];
   }
 }

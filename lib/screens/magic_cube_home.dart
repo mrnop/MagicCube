@@ -4,16 +4,10 @@ import 'package:image_picker/image_picker.dart';
 import '../magic_manager.dart';
 import '../services/image_crop_service.dart';
 import '../services/analytics_service.dart';
-import '../debug_templates.dart';
 import '../widgets/magic_card.dart';
 import '../widgets/save_card.dart';
 import 'project_detail_screen.dart';
 import 'project_editor_screen.dart';
-import '../example/crop_example.dart';
-import 'processing_test_screen.dart';
-import 'export_test_screen.dart';
-import 'page_builder_test_screen.dart';
-import 'slice_debug_test_screen.dart';
 
 class MagicCubeHome extends StatefulWidget {
   const MagicCubeHome({super.key});
@@ -122,16 +116,6 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
         ),
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.bug_report),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const DebugTemplatesScreen(),
-              ),
-            ),
-            tooltip: 'Debug Templates',
-          ),
           if (MagicManager.instance.isVip)
             const Padding(
               padding: EdgeInsets.only(right: 16.0),
@@ -195,51 +179,10 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
                 _buildSavesList(),
               ],
             ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            heroTag: "test_crop",
-            onPressed: _testCropFunctionality,
-            tooltip: 'Test Crop',
-            child: const Icon(Icons.crop),
-          ),
-          const SizedBox(width: 16),
-          FloatingActionButton(
-            heroTag: "test_processing",
-            onPressed: _testProcessingFunctionality,
-            tooltip: 'Test Processing',
-            child: const Icon(Icons.transform),
-          ),
-          const SizedBox(width: 16),
-          FloatingActionButton(
-            heroTag: "test_export",
-            onPressed: _testExportFunctionality,
-            tooltip: 'Test Export',
-            child: const Icon(Icons.picture_as_pdf),
-          ),
-          const SizedBox(width: 16),
-          FloatingActionButton(
-            heroTag: "test_page_builder",
-            onPressed: _testPageBuilderFunctionality,
-            tooltip: 'Test Page Builder',
-            child: const Icon(Icons.article),
-          ),
-          const SizedBox(width: 16),
-          FloatingActionButton(
-            heroTag: "test_slice_debug",
-            onPressed: _testSliceDebugFunctionality,
-            tooltip: 'Test Slice Debug',
-            child: const Icon(Icons.bug_report),
-          ),
-          const SizedBox(width: 16),
-          FloatingActionButton.extended(
-            heroTag: "new_project",
-            onPressed: _createNewProject,
-            icon: const Icon(Icons.add),
-            label: const Text('New Project'),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _createNewProject,
+        icon: const Icon(Icons.add),
+        label: const Text('New Project'),
       ),
     );
   }
@@ -591,51 +534,6 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
     _tabController.animateTo(0);
 
     _showSuccessSnackBar('Select a template to create a new project');
-  }
-
-  void _testCropFunctionality() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CropExample(),
-      ),
-    );
-  }
-
-  void _testProcessingFunctionality() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ProcessingTestScreen(),
-      ),
-    );
-  }
-
-  void _testExportFunctionality() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ExportTestScreen(),
-      ),
-    );
-  }
-
-  void _testPageBuilderFunctionality() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const PageBuilderTestScreen(),
-      ),
-    );
-  }
-
-  void _testSliceDebugFunctionality() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const SliceDebugTestScreen(),
-      ),
-    );
   }
 
   void _openProject(Save save) {

@@ -401,56 +401,85 @@ class MagicProcessingService {
   }
 
   /// Apply perspective transformation to an image
-  /// Fits the slice image inside the destination polygon bounds without clipping
+  /// Maps source image to destination quadrilateral using perspective warp
+  /// Following Java's Matrix.setPolyToPoly logic
   static Future<ui.Image?> _applyPerspectiveTransform(
       ui.Image image, Map<String, dynamic>? params) async {
-    if (params == null || !params.containsKey('dest')) return image;
+    if (params == null) return image;
 
     try {
-      final destPoints = params['dest'] as List<dynamic>;
-      if (destPoints.length != 4) return image;
+      // Parse source points (defaults to image corners)
+      List<Offset> srcPoints;
+      if (params.containsKey('src')) {
+        final srcList = params['src'] as List<dynamic>;
+        if (srcList.length == 4) {
+          srcPoints = srcList
+              .map((point) => Offset((point['x'] as num).toDouble(),
+                  (point['y'] as num).toDouble()))
+              .toList();
+        } else {
+          srcPoints = [
+            Offset(0, 0),
+            Offset(image.width.toDouble(), 0),
+            Offset(image.width.toDouble(), image.height.toDouble()),
+            Offset(0, image.height.toDouble()),
+          ];
+        }
+      } else {
+        // Default source points: image corners (top-left, top-right, bottom-right, bottom-left)
+        srcPoints = [
+          Offset(0, 0),
+          Offset(image.width.toDouble(), 0),
+          Offset(image.width.toDouble(), image.height.toDouble()),
+          Offset(0, image.height.toDouble()),
+        ];
+      }
 
       // Parse destination points
-      final dest = destPoints
-          .map((point) => Offset(
-              (point['x'] as num).toDouble(), (point['y'] as num).toDouble()))
-          .toList();
+      List<Offset> dstPoints;
+      if (params.containsKey('dest')) {
+        final dstList = params['dest'] as List<dynamic>;
+        if (dstList.length != 4) return image;
+        dstPoints = dstList
+            .map((point) => Offset(
+                (point['x'] as num).toDouble(), (point['y'] as num).toDouble()))
+            .toList();
+      } else if (params.containsKey('dst')) {
+        final dstList = params['dst'] as List<dynamic>;
+        if (dstList.length != 4) return image;
+        dstPoints = dstList
+            .map((point) => Offset(
+                (point['x'] as num).toDouble(), (point['y'] as num).toDouble()))
+            .toList();
+      } else {
+        return image;
+      }
 
       // Calculate bounding rectangle of destination points
-      final bounds = _getBoundingRect(dest);
+      final bounds = _getBoundingRect(dstPoints);
       final outputWidth = bounds.width.toInt();
       final outputHeight = bounds.height.toInt();
 
       if (outputWidth <= 0 || outputHeight <= 0) return image;
 
+      debugPrint('Perspective transform:');
+      debugPrint('  Source: $srcPoints');
+      debugPrint('  Destination: $dstPoints');
+      debugPrint('  Output size: ${outputWidth}x$outputHeight');
+
       // Normalize destination points to start from (0,0)
-      final normalizedDest = dest
+      final normalizedDst = dstPoints
           .map((point) => Offset(point.dx - bounds.left, point.dy - bounds.top))
           .toList();
 
-      // Create output canvas
-      final recorder = ui.PictureRecorder();
-      final canvas =
-          Canvas(recorder, Rect.fromLTWH(0, 0, bounds.width, bounds.height));
-
-      // Clear background to transparent
-      canvas.drawRect(
-        Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-        Paint()..color = Colors.transparent,
-      );
-
-      // Scale and position the slice image to fit within the destination polygon bounds
-      // No clipping - just fit the image to the bounding rectangle
-      canvas.drawImageRect(
+      // Use ImageUtils.warpPerspective for true perspective transformation
+      return await ImageUtils.warpPerspective(
         image,
-        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-        _getBoundingRect(
-            normalizedDest), // Fit within the polygon's bounding rect
-        Paint()..filterQuality = FilterQuality.high,
+        srcPoints,
+        normalizedDst,
+        outputWidth,
+        outputHeight,
       );
-
-      final picture = recorder.endRecording();
-      return await picture.toImage(outputWidth, outputHeight);
     } catch (e) {
       debugPrint('Error applying perspective transform: $e');
       return null;

@@ -10,29 +10,29 @@
       "faces":[
 
 
-        { "source": 1, "slice":2, "x": 37.140, "y": 1055.846, "angle" : 0},
-        { "source": 1, "slice":3, "x": 37.140, "y": 794.756, "angle" :  0 },
-        { "source": 1, "slice":4, "x": 37.140, "y": 537.463, "angle" : 0},
-        { "source": 1, "slice":1, "x": 37.140, "y": 279.205, "angle" : 0},
+        { "source": 1, "slice":2, "x": 37.140, "y": 1050, "angle" : 90},
+        { "source": 1, "slice":3, "x": 37.140, "y": 791, "angle" :  90 },
+        { "source": 1, "slice":4, "x": 37.140, "y": 534, "angle" : 90},
+        { "source": 1, "slice":1, "x": 37.140, "y": 277, "angle" : 90},
 
-        { "source": 2, "slice":2, "x": 129.454, "y": 1185.475, "angle" :0},
-        { "source": 2, "slice":3, "x": 129.454, "y": 924.385, "angle" : 0 },
-        { "source": 2, "slice":4, "x": 129.454, "y": 665.454, "angle" : 0 },
-        { "source": 2, "slice":1, "x": 129.454, "y": 409.053, "angle" :0},
-        { "source": 2, "slice":2, "x": 129.454, "y": 150.098, "angle" :0},
+        { "source": 2, "slice":2, "x": 127, "y": 1180, "angle" :90},
+        { "source": 2, "slice":3, "x": 127, "y": 921, "angle" : 90 },
+        { "source": 2, "slice":4, "x": 127, "y": 662, "angle" : 90 },
+        { "source": 2, "slice":1, "x": 127, "y": 405, "angle" :90},
+        { "source": 2, "slice":2, "x": 127, "y": 148, "angle" :90},
 
 
 
-        { "source": 3, "slice":2, "x": 221.860, "y": 1055.846, "angle" : 0},
-        { "source": 3, "slice":3, "x": 221.860, "y": 794.756, "angle" : 0},
-        { "source": 3, "slice":4, "x": 221.860, "y": 537.463, "angle" : 0},
-        { "source": 3, "slice":1, "x": 221.860, "y": 279.205, "angle" : 0 },
+        { "source": 3, "slice":2, "x": 219, "y": 1050, "angle" : 90},
+        { "source": 3, "slice":3, "x": 219, "y": 791, "angle" : 90},
+        { "source": 3, "slice":4, "x": 219, "y": 534, "angle" : 90},
+        { "source": 3, "slice":1, "x": 219, "y": 277, "angle" : 90 },
 
-        { "source": 4, "slice":2, "x": 313.699, "y": 1185.475, "angle" : 0 },
-        { "source": 4, "slice":3, "x": 313.699, "y": 924.385, "angle" : 0},
-        { "source": 4, "slice":4, "x": 313.699, "y": 665.454, "angle" : 0},
-        { "source": 4, "slice":1, "x": 313.699, "y": 409.053, "angle" : 0},
-        { "source": 4, "slice":2, "x": 313.699, "y": 150.098, "angle" : 0 }
+        { "source": 4, "slice":2, "x": 311, "y": 1180, "angle" : 90 },
+        { "source": 4, "slice":3, "x": 311, "y": 921, "angle" : 90},
+        { "source": 4, "slice":4, "x": 311, "y": 662, "angle" : 90},
+        { "source": 4, "slice":1, "x": 311, "y": 405, "angle" : 90},
+        { "source": 4, "slice":2, "x": 311, "y": 148, "angle" : 90 }
 
       ],
       "watermarks":[{"src":"watermask.png" , "x" : 80.454, "y": 665.454, "angle" : 180 ,"scale":1.0} ,
