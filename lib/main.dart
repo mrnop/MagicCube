@@ -37,6 +37,9 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Magic Cube',
           debugShowCheckedModeBanner: false,
+          debugShowMaterialGrid: false,
+          showPerformanceOverlay: false,
+          showSemanticsDebugger: false,
           theme: ThemeData(
             primarySwatch: Colors.blue,
             visualDensity: VisualDensity.adaptivePlatformDensity,
