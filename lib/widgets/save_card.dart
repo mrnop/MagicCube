@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/save.dart';
+import '../magic_manager.dart';
 
 class SaveCard extends StatelessWidget {
   final Save save;
@@ -15,19 +17,68 @@ class SaveCard extends StatelessWidget {
     this.onEdit,
   });
 
+  Widget _buildLeadingWidget() {
+    // Try to load the source image from the project directory
+    if (save.path != null) {
+      final projectDir = MagicManager.instance.workDir;
+
+      // Try to find any available source image
+      // Check source_image.png first, then source_image_1.png, source_image_2.png, etc.
+      final possiblePaths = [
+        '${projectDir.path}/${save.name}/source_image.png',
+        '${projectDir.path}/${save.name}/source_image_1.png',
+        '${projectDir.path}/${save.name}/source_image_2.png',
+        '${projectDir.path}/${save.name}/source_image_3.png',
+        '${projectDir.path}/${save.name}/source_image_4.png',
+        '${projectDir.path}/${save.name}/source_image_5.png',
+        '${projectDir.path}/${save.name}/source_image_6.png',
+      ];
+
+      for (final path in possiblePaths) {
+        final sourceImageFile = File(path);
+        if (sourceImageFile.existsSync()) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(
+              sourceImageFile,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return _buildFallbackIcon();
+              },
+            ),
+          );
+        }
+      }
+    }
+
+    return _buildFallbackIcon();
+  }
+
+  Widget _buildFallbackIcon() {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.blue.shade100,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(
+        Icons.folder,
+        color: Colors.blue.shade600,
+        size: 32,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
-        leading: CircleAvatar(
-          backgroundColor: Colors.blue.shade100,
-          child: Icon(
-            Icons.folder,
-            color: Colors.blue.shade600,
-          ),
-        ),
+        leading: _buildLeadingWidget(),
         title: Text(
           save.name,
           style: const TextStyle(fontWeight: FontWeight.bold),
