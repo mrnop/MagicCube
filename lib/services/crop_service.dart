@@ -74,6 +74,9 @@ class Crop {
           aspectRatioPresets: _getAspectRatioPresets(),
           hideBottomControls: false,
           showCropGrid: true,
+          // Enable unlimited scaling
+          cropFrameStrokeWidth: 3,
+          activeControlsWidgetColor: Theme.of(context).primaryColor,
         ),
         IOSUiSettings(
           title: _options['title'] ?? 'Crop Image',
@@ -81,6 +84,8 @@ class Crop {
           resetAspectRatioEnabled: !_hasAspectRatio(),
           aspectRatioPresets: _getAspectRatioPresets(),
           hidesNavigationBar: false,
+          // Enable minimum cropping size for better zoom
+          minimumAspectRatio: 0.1,
         ),
         WebUiSettings(
           context: context,
@@ -215,6 +220,8 @@ class CropUtil {
   }) async {
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: imagePath,
+      compressFormat: ImageCompressFormat.png,
+      compressQuality: 100,
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: title ?? 'Crop Image',
@@ -222,9 +229,14 @@ class CropUtil {
           toolbarWidgetColor: Colors.white,
           initAspectRatio: preset,
           lockAspectRatio: preset != CropAspectRatioPreset.original,
+          hideBottomControls: false,
+          showCropGrid: true,
+          cropFrameStrokeWidth: 3,
+          activeControlsWidgetColor: Theme.of(context).primaryColor,
         ),
         IOSUiSettings(
           title: title ?? 'Crop Image',
+          minimumAspectRatio: 0.1,
         ),
         WebUiSettings(
           context: context,
