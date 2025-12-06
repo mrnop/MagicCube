@@ -321,6 +321,31 @@ class ExportService {
     }
   }
 
+  /// Share multiple files (e.g. exported images)
+  static Future<bool> shareFiles(List<String> filePaths, {String? text}) async {
+    try {
+      final files = <XFile>[];
+      for (final path in filePaths) {
+        final file = File(path);
+        if (file.existsSync()) {
+          files.add(XFile(path));
+        }
+      }
+
+      if (files.isEmpty) return false;
+
+      await Share.shareXFiles(
+        files,
+        text: text ?? 'Magic Cube Export',
+      );
+
+      return true;
+    } catch (e) {
+      debugPrint('Error sharing files: $e');
+      return false;
+    }
+  }
+
   /// Load template metadata
   static Future<Map<String, dynamic>?> _loadTemplateMeta(
       String templatePath) async {

@@ -1,4 +1,4 @@
-package com.example.magic_cube_flutter
+package com.isarainc.magic_cube
 
 import io.flutter.embedding.android.FlutterActivity
 

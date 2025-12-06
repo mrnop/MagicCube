@@ -25,7 +25,7 @@ class MagicManager {
     // Load VIP devices from assets
     await _loadVipDevices();
 
-    print('MagicManager initialized for web platform');
+    debugPrint('MagicManager initialized for web platform');
   }
 
   Future<void> _loadVipDevices() async {
@@ -34,9 +34,7 @@ class MagicManager {
       final List<dynamic> devices = json.decode(deviceData);
       _vipDevices = devices.cast<String>();
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to load VIP devices: $e');
-      }
+      debugPrint('Failed to load VIP devices: $e');
       _vipDevices = [];
     }
   }
@@ -114,9 +112,7 @@ class MagicManager {
   /// Load bitmap from magic assets
   Future<ui.Image?> loadMagicBitmap(String magicPath, String filename) async {
     // Mock implementation for web - would normally load from assets
-    if (kDebugMode) {
-      print('Loading bitmap: $magicPath/$filename');
-    }
+    debugPrint('Loading bitmap: $magicPath/$filename');
     return null;
   }
 
@@ -207,9 +203,7 @@ class MagicManager {
   Future<ui.Image?> loadSlice(
       String projectPath, int sourceId, int sliceId) async {
     // Mock implementation for web
-    if (kDebugMode) {
-      print('Loading slice: $projectPath/$sourceId/$sliceId');
-    }
+    debugPrint('Loading slice: $projectPath/$sourceId/$sliceId');
     return null;
   }
 
@@ -217,9 +211,7 @@ class MagicManager {
   Future<void> saveSlice(
       String projectPath, int sourceId, int sliceId, Uint8List pngBytes) async {
     // Mock implementation for web
-    if (kDebugMode) {
-      print(
-          'Saving slice: $projectPath/$sourceId/$sliceId (${pngBytes.length} bytes)');
-    }
+    debugPrint(
+        'Saving slice: $projectPath/$sourceId/$sliceId (${pngBytes.length} bytes)');
   }
 }

@@ -13,8 +13,8 @@ import '../utils/image_utils.dart';
 class PageBuilderDebugConfig {
   static bool enableSliceDebugging =
       true; // Always enabled for debugging slices
-  static bool showSliceBoundaries = true;
-  static bool showSliceLabels = true;
+  static bool showSliceBoundaries = false;
+  static bool showSliceLabels = false;
   static bool showSliceCenters = true;
   static bool showCornerMarkers = true;
 
@@ -90,6 +90,8 @@ class PageBuilderService {
           onProgress: onProgress,
         );
       }
+
+      if (!context.mounted) return null;
 
       // If more than one page, show selection dialog
       String? selectedPagePath;

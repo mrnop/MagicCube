@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../models/save.dart';
 import '../magic_manager.dart';
 
 class SaveCard extends StatelessWidget {
