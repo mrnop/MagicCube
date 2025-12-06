@@ -53,7 +53,7 @@ class _PageBuilderDetailScreenState extends State<PageBuilderDetailScreen> {
             ),
         ],
       ),
-      body: _buildBody(),
+      body: SafeArea(child: _buildBody()),
     );
   }
 

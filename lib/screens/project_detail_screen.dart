@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/save.dart';
 import '../services/analytics_service.dart';
@@ -69,37 +70,39 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Project Preview Card
-            _buildSimplePreviewCard(),
-            const SizedBox(height: 24),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Project Preview Card
+              _buildSimplePreviewCard(),
+              const SizedBox(height: 24),
 
-            // Project Information
-            _buildInfoSection(
-              title: 'Project Information',
-              children: [
-                _buildInfoRow('Name', widget.save.name),
-                // _buildInfoRow('Template', widget.save.magic),
-                // _buildInfoRow('Author', widget.save.author),
-                _buildInfoRow('Created', _formatDate(widget.save.created)),
-                _buildInfoRow('Updated', _formatDate(widget.save.updated)),
-                // if (widget.save.path != null)
-                //   _buildInfoRow('Path', widget.save.path!),
-              ],
-            ),
-            const SizedBox(height: 16),
+              // Project Information
+              _buildInfoSection(
+                title: 'Project Information',
+                children: [
+                  _buildInfoRow('Name', widget.save.name),
+                  // _buildInfoRow('Template', widget.save.magic),
+                  // _buildInfoRow('Author', widget.save.author),
+                  _buildInfoRow('Created', _formatDate(widget.save.created)),
+                  _buildInfoRow('Updated', _formatDate(widget.save.updated)),
+                  // if (widget.save.path != null)
+                  //   _buildInfoRow('Path', widget.save.path!),
+                ],
+              ),
+              const SizedBox(height: 16),
 
-            // Processing Status
-            _buildProcessingStatusSection(),
-            const SizedBox(height: 24),
+              // Processing Status
+              _buildProcessingStatusSection(),
+              const SizedBox(height: 24),
 
-            // Action Buttons
-            _buildActionsSection(),
-          ],
+              // Action Buttons
+              _buildActionsSection(),
+            ],
+          ),
         ),
       ),
     );
@@ -343,6 +346,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     if (result == true && mounted) {
       // Reload processing status in case images were changed
       await _loadProcessingStatus();
+
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -704,7 +709,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   void _showExportSuccessDialog(ExportResult result, ExportType type) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Row(
           children: [
             const Icon(Icons.check_circle, color: Colors.green),
@@ -743,15 +748,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('OK'),
           ),
           if (type == ExportType.pdf && result.filePath != null)
             ElevatedButton(
               onPressed: () async {
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
                 final shared = await ExportService.sharePDF(result.filePath!);
-                if (!shared && mounted) {
+                if (!mounted) return;
+
+                if (!shared) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Could not share file'),
@@ -768,20 +775,164 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   void _shareProject() {
+    if (widget.save.path == null) return;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Share Project'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Choose what to share:'),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf, color: Colors.blue),
+              title: const Text('Share PDF'),
+              subtitle: const Text('Printable document with assembly guide'),
+              onTap: () async {
+                Navigator.pop(dialogContext);
+                await _sharePDF();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.image, color: Colors.green),
+              title: const Text('Share Images'),
+              subtitle: const Text('Individual slice images'),
+              onTap: () async {
+                Navigator.pop(dialogContext);
+                await _shareImages();
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sharePDF() async {
+    // Check if project is processed
+    final canShare = _processingStatus?.isProcessed ?? false;
+    if (!canShare) {
+      _showNotProcessedDialog();
+      return;
+    }
+
+    _showLoadingDialog('Preparing PDF for sharing...');
+
+    try {
+      final result = await ExportService.exportToPDF(
+        projectPath: widget.save.path!,
+        templatePath: widget.save.magic,
+        projectName: widget.save.name,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      if (result.success && result.filePath != null) {
+        await ExportService.sharePDF(result.filePath!);
+      } else {
+        _showErrorSnackBar('Failed to generate PDF: ${result.error}');
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      _showErrorSnackBar('Error sharing PDF: $e');
+    }
+  }
+
+  Future<void> _shareImages() async {
+    // Check if project is processed
+    final canShare = _processingStatus?.isProcessed ?? false;
+    if (!canShare) {
+      _showNotProcessedDialog();
+      return;
+    }
+
+    _showLoadingDialog('Preparing images for sharing...');
+
+    try {
+      // Create a temporary export of images to share
+      final result = await ExportService.exportToImages(
+        projectPath: widget.save.path!,
+        templatePath: widget.save.magic,
+        projectName: widget.save.name,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      if (result.success && result.filePath != null) {
+        // Get all files in the directory
+        final dir = Directory(result.filePath!);
+        final files = dir
+            .listSync()
+            .whereType<File>()
+            .map((f) => f.path)
+            .where((p) => p.endsWith('.png'))
+            .toList();
+
+        if (files.isNotEmpty) {
+          await ExportService.shareFiles(files,
+              text: 'Magic Cube Slices - ${widget.save.name}');
+        } else {
+          _showErrorSnackBar('No images found to share');
+        }
+      } else {
+        _showErrorSnackBar('Failed to export images: ${result.error}');
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      _showErrorSnackBar('Error sharing images: $e');
+    }
+  }
+
+  void _showNotProcessedDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Share Project'),
+        title: const Text('Project Not Processed'),
         content: const Text(
-          'Share functionality is not yet implemented. '
-          'This would allow you to share your project or processed images.',
-        ),
+            'You need to process the images before you can share them. tap "Process Images" to start.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('OK'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showLoadingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Expanded(child: Text(message)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
       ),
     );
   }

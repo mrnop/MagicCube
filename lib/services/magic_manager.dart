@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -39,7 +40,7 @@ class MagicManager {
       final List<dynamic> devices = json.decode(deviceData);
       _vipDevices = devices.cast<String>();
     } catch (e) {
-      print('Failed to load VIP devices: $e');
+      debugPrint('Failed to load VIP devices: $e');
       _vipDevices = [];
     }
   }
@@ -73,19 +74,26 @@ class MagicManager {
     final List<Magic> magics = [];
 
     try {
-      // Load magic list from assets manifest
-      final manifestContent = await rootBundle.loadString('AssetManifest.json');
-      final Map<String, dynamic> manifestMap = json.decode(manifestContent);
+      // Load asset manifest using the new API
+      debugPrint('Loading AssetManifest...');
+      final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+      final assets = manifest.listAssets();
+      debugPrint('AssetManifest loaded, assets count: ${assets.length}');
 
       // Find magic directories
       final magicPaths = <String>{};
-      for (final key in manifestMap.keys) {
+      for (final key in assets) {
+        // debugPrint('Checking asset: $key');
         final match =
             RegExp(r'assets/magics/([^/]+)/meta\.json').firstMatch(key);
         if (match != null) {
-          magicPaths.add(match.group(1)!);
+          final magicId = match.group(1)!;
+          debugPrint('Found magic candidate: $magicId from $key');
+          magicPaths.add(magicId);
         }
       }
+
+      debugPrint('Found ${magicPaths.length} magic paths: $magicPaths');
 
       // Load each magic
       for (final magicPath in magicPaths) {
@@ -93,13 +101,17 @@ class MagicManager {
           final magic = await loadMagic(magicPath);
           if (magic != null) {
             magics.add(magic);
+            debugPrint('Loaded magic: ${magic.name}');
+          } else {
+            debugPrint('Failed to load magic metadata for $magicPath');
           }
         } catch (e) {
-          print('Failed to load magic $magicPath: $e');
+          debugPrint('Failed to load magic $magicPath: $e');
         }
       }
-    } catch (e) {
-      print('Failed to list magics: $e');
+    } catch (e, stack) {
+      debugPrint('Failed to list magics: $e');
+      debugPrint(stack.toString());
     }
 
     return magics;
@@ -114,10 +126,11 @@ class MagicManager {
       magic.path = magicPath;
       return magic;
     } catch (e) {
-      print('Failed to load magic $magicPath: $e');
+      debugPrint('Failed to load magic $magicPath: $e');
       return null;
     }
   }
+
   /// Load bitmap from magic assets
   Future<ui.Image?> loadMagicBitmap(String magicPath, String filename) async {
     try {
@@ -126,7 +139,7 @@ class MagicManager {
       final frame = await codec.getNextFrame();
       return frame.image;
     } catch (e) {
-      print('Failed to load bitmap $magicPath/$filename: $e');
+      debugPrint('Failed to load bitmap $magicPath/$filename: $e');
       return null;
     }
   }
@@ -136,15 +149,15 @@ class MagicManager {
     final List<PageHead> pages = [];
 
     try {
-      final manifestContent = await rootBundle.loadString('AssetManifest.json');
-      final Map<String, dynamic> manifestMap = json.decode(manifestContent);
+      final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+      final assets = manifest.listAssets();
 
       // Find page directories - use proper regex escaping for the variable
       final pagePaths = <String>{};
       final pattern =
           RegExp('assets/magics/$magicPath/pages/([^/]+)/meta\\.json');
 
-      for (final key in manifestMap.keys) {
+      for (final key in assets) {
         final match = pattern.firstMatch(key);
         if (match != null) {
           pagePaths.add(match.group(1)!);
@@ -159,11 +172,11 @@ class MagicManager {
             pages.add(page);
           }
         } catch (e) {
-          print('Failed to load page $magicPath/$pagePath: $e');
+          debugPrint('Failed to load page $magicPath/$pagePath: $e');
         }
       }
     } catch (e) {
-      print('Failed to list pages for $magicPath: $e');
+      debugPrint('Failed to list pages for $magicPath: $e');
     }
 
     return pages;
@@ -178,7 +191,7 @@ class MagicManager {
       page.path = pagePath;
       return page;
     } catch (e) {
-      print('Failed to load page $magicPath/$pagePath: $e');
+      debugPrint('Failed to load page $magicPath/$pagePath: $e');
       return null;
     }
   }
@@ -211,13 +224,13 @@ class MagicManager {
               await deleteSave(path.basename(dir.path));
             }
           } catch (e) {
-            print('Failed to load save ${dir.path}: $e');
+            debugPrint('Failed to load save ${dir.path}: $e');
             await deleteSave(path.basename(dir.path));
           }
         }
       }
     } catch (e) {
-      print('Failed to list saves: $e');
+      debugPrint('Failed to list saves: $e');
     }
 
     // Sort by updated date, newest first
@@ -249,7 +262,7 @@ class MagicManager {
       save.path = savePath;
       return save;
     } catch (e) {
-      print('Failed to load save $savePath: $e');
+      debugPrint('Failed to load save $savePath: $e');
       return null;
     }
   }
@@ -286,7 +299,7 @@ class MagicManager {
       final metaFile = File(path.join(projectDir.path, 'meta.json'));
       await metaFile.writeAsString(json.encode(updatedSave.toJson()));
     } catch (e) {
-      print('Failed to update save ${save.path}: $e');
+      debugPrint('Failed to update save ${save.path}: $e');
       rethrow;
     }
   }
@@ -299,7 +312,7 @@ class MagicManager {
         await projectDir.delete(recursive: true);
       }
     } catch (e) {
-      print('Failed to delete save $savePath: $e');
+      debugPrint('Failed to delete save $savePath: $e');
     }
   }
 
@@ -317,7 +330,7 @@ class MagicManager {
       final frame = await codec.getNextFrame();
       return frame.image;
     } catch (e) {
-      print('Failed to load slice $projectPath/$sourceId/$sliceId: $e');
+      debugPrint('Failed to load slice $projectPath/$sourceId/$sliceId: $e');
       return null;
     }
   }
@@ -335,7 +348,7 @@ class MagicManager {
       final sliceFile = File(path.join(sliceDir.path, '$sliceId.png'));
       await sliceFile.writeAsBytes(pngBytes);
     } catch (e) {
-      print('Failed to save slice $projectPath/$sourceId/$sliceId: $e');
+      debugPrint('Failed to save slice $projectPath/$sourceId/$sliceId: $e');
       rethrow;
     }
   }

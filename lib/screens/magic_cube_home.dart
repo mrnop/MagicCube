@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +7,7 @@ import '../services/image_crop_service.dart';
 import '../services/analytics_service.dart';
 import '../widgets/magic_card.dart';
 import '../widgets/save_card.dart';
+import '../widgets/shimmer_loading.dart';
 import 'project_detail_screen.dart';
 import 'project_editor_screen.dart';
 
@@ -28,7 +30,7 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _initializeManager();
+    _loadData(); // Calls _loadData which initializes manager and loads data
     AnalyticsService.instance.logScreenView('home');
   }
 
@@ -38,24 +40,16 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
     super.dispose();
   }
 
-  Future<void> _initializeManager() async {
-    try {
-      await MagicManager.instance.initialize();
-      await _loadData();
-    } catch (e) {
-      print('Failed to initialize: $e');
-      _showErrorSnackBar('Failed to initialize app: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
+  // _initializeManager is removed as its logic is integrated into _loadData and initState.
 
   Future<void> _loadData() async {
     try {
+      // Initialize manager here if not already initialized, or ensure it's handled globally
+      // For this change, we assume MagicManager.instance.initialize() is handled elsewhere
+      // or that _loadData can proceed without explicit re-initialization here.
+      // If initialization is critical before loading, it should be added here.
+      await MagicManager.instance
+          .initialize(); // Added back initialization here
       final loadedMagics = await MagicManager.instance.listMagics();
       final loadedSaves = await MagicManager.instance.listSaves();
 
@@ -63,11 +57,17 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
         setState(() {
           magics = loadedMagics;
           saves = loadedSaves;
+          isLoading = false; // Set isLoading to false on successful load
         });
       }
     } catch (e) {
-      print('Failed to load data: $e');
-      _showErrorSnackBar('Failed to load data: $e');
+      debugPrint('Failed to load data: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false; // Set isLoading to false even on error
+        });
+        _showErrorSnackBar('Failed to load data: $e');
+      }
     }
   }
 
@@ -111,7 +111,13 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
               },
             ),
             const SizedBox(width: 8),
-            const Text('Magic Cube'),
+            const Text(
+              'Magic Cube',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.0,
+              ),
+            ),
           ],
         ),
         elevation: 0,
@@ -162,15 +168,12 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
         ),
       ),
       body: isLoading
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading Magic Cube...'),
-                ],
-              ),
+          ? TabBarView(
+              controller: _tabController,
+              children: [
+                _buildGridShimmer(),
+                _buildListShimmer(),
+              ],
             )
           : TabBarView(
               controller: _tabController,
@@ -213,7 +216,7 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
     return RefreshIndicator(
       onRefresh: _loadData,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 80.0),
         child: MasonryGridView.count(
           crossAxisCount: 2,
           itemCount: magics.length,
@@ -256,7 +259,7 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
     return RefreshIndicator(
       onRefresh: _loadData,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 80.0),
         child: ListView.builder(
           itemCount: saves.length,
           itemBuilder: (context, index) {
@@ -362,8 +365,11 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
     }
   }
 
-  Future<void> _showImagePickingOptionsDialog(Magic magic) async {
-    showDialog(
+  Future<void> _showImagePickingOptionsDialog(Magic magic) {
+    // Capture parent context (home screen context) because dialog context will be popped
+    final parentContext = context;
+
+    return showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Choose Image Mode'),
@@ -392,14 +398,14 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await _createProjectWithSingleImage(magic);
+              await _createProjectWithSingleImage(parentContext, magic);
             },
             child: const Text('Single Image'),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              await _createProjectWithMultipleImages(magic);
+              await _createProjectWithMultipleImages(parentContext, magic);
             },
             child: const Text('Multiple Images'),
           ),
@@ -408,17 +414,22 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
     );
   }
 
-  Future<void> _createProjectWithSingleImage(Magic magic) async {
+  Future<void> _createProjectWithSingleImage(
+      BuildContext context, Magic magic) async {
+    if (!context.mounted) return;
     try {
       // Extract template name from path (e.g., "assets/magics/decagonal" -> "decagonal")
       final templateName = magic.path?.split('/').last ?? '';
 
       // Pick and crop a single image using the first source mask
-      final croppedImage = templateName.isNotEmpty
-          ? await ImageCropService.pickImageForMagicWithMask(
-              context, templateName,
-              sourceId: 1)
-          : await ImageCropService.pickImageForMagic(context);
+      File? croppedImage;
+      if (templateName.isNotEmpty) {
+        croppedImage = await ImageCropService.pickImageForMagicWithMask(
+            context, templateName,
+            sourceId: 1);
+      } else {
+        croppedImage = await ImageCropService.pickImageForMagic(context);
+      }
 
       if (croppedImage == null) {
         // User cancelled, create empty project
@@ -441,6 +452,8 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
 
       await _loadData();
 
+      if (!context.mounted) return;
+
       AnalyticsService.instance.logProjectCreated(magic.name);
       AnalyticsService.instance.logImageCropped();
       _showSuccessSnackBar('Project "$projectName" created with single image!');
@@ -455,7 +468,8 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
     }
   }
 
-  Future<void> _createProjectWithMultipleImages(Magic magic) async {
+  Future<void> _createProjectWithMultipleImages(
+      BuildContext context, Magic magic) async {
     try {
       // Extract template name from path (e.g., "assets/magics/decagonal" -> "decagonal")
       final templateName = magic.path?.split('/').last ?? '';
@@ -473,6 +487,8 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
         source: ImageSource.gallery,
       );
 
+      if (!context.mounted) return;
+
       // If the advanced method fails, try the simpler approach
       if (croppedImages == null) {
         debugPrint(
@@ -483,6 +499,8 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
           source: ImageSource.gallery,
         );
       }
+
+      if (!context.mounted) return;
 
       if (croppedImages == null || croppedImages.isEmpty) {
         // User cancelled, create empty project
@@ -662,6 +680,46 @@ class _MagicCubeHomeState extends State<MagicCubeHome>
             child: const Text('Got it!'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGridShimmer() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: MasonryGridView.count(
+        crossAxisCount: 2,
+        itemCount: 6,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        itemBuilder: (context, index) {
+          return const ShimmerLoading(
+            height: 200,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildListShimmer() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListView.builder(
+        itemCount: 6,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: const ShimmerLoading(
+              height: 100,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

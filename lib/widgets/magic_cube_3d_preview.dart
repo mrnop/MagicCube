@@ -308,8 +308,8 @@ class MagicCube3DPainter extends CustomPainter {
     // Fill face with gradient
     final gradient = LinearGradient(
       colors: [
-        _getFaceColor(faceIndex).withOpacity(0.7),
-        _getFaceColor(faceIndex).withOpacity(0.9),
+        _getFaceColor(faceIndex).withValues(alpha: 0.4),
+        _getFaceColor(faceIndex).withValues(alpha: 0.5),
       ],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -350,7 +350,7 @@ class MagicCube3DPainter extends CustomPainter {
 
     // Draw image scaled to fit the face
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.8)
+      ..color = Colors.white.withValues(alpha: 0.8)
       ..filterQuality = FilterQuality.medium;
 
     canvas.drawImageRect(
@@ -375,7 +375,7 @@ class MagicCube3DPainter extends CustomPainter {
 
   void _drawWireframe(Canvas canvas, List<Offset> vertices) {
     final paint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withValues(alpha: 0.3)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
@@ -450,7 +450,7 @@ class MagicCube3DScreen extends StatelessWidget {
         ),
       ),
       bottomSheet: Container(
-        color: Colors.black.withOpacity(0.8),
+        color: Colors.black.withValues(alpha: 0.8),
         padding: const EdgeInsets.all(16),
         child: const Text(
           'Tap the cube to pause/resume rotation\nThis preview shows your processed slices in 3D',

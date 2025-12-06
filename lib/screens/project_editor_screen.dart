@@ -27,6 +27,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
   bool _isLoading = true;
   bool _hasChanges = false;
   List<File> _sourceImages = [];
+  final Map<String, int> _imageVersions = {};
 
   @override
   void initState() {
@@ -115,19 +116,21 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProjectInfoSection(),
-                  const SizedBox(height: 24),
-                  _buildTemplateInfoSection(),
-                  const SizedBox(height: 24),
-                  _buildSourceImagesSection(),
-                  const SizedBox(height: 24),
-                  _buildActionsSection(),
-                ],
+          : SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildProjectInfoSection(),
+                    const SizedBox(height: 24),
+                    _buildTemplateInfoSection(),
+                    const SizedBox(height: 24),
+                    _buildSourceImagesSection(),
+                    const SizedBox(height: 24),
+                    _buildActionsSection(),
+                  ],
+                ),
               ),
             ),
     );
@@ -321,6 +324,8 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
                           height: double.infinity,
                           child: Image.file(
                             image,
+                            key: ValueKey(
+                                '${image.path}_${_imageVersions[image.path] ?? 0}'),
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
@@ -503,7 +508,21 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
       }
 
       // Determine which source ID to use
-      final sourceId = _sourceImages.length + 1;
+      // Find the first available ID to avoid collisions
+      final existingIds = <int>{};
+      final RegExp idRegex = RegExp(r'source_image_(\d+)\.png$');
+
+      for (final image in _sourceImages) {
+        final match = idRegex.firstMatch(image.path);
+        if (match != null) {
+          existingIds.add(int.parse(match.group(1)!));
+        }
+      }
+
+      int sourceId = 1;
+      while (existingIds.contains(sourceId)) {
+        sourceId++;
+      }
 
       // Show dialog to choose single or multiple images
       final result = await showDialog<String>(
@@ -536,7 +555,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
         ),
       );
 
-      if (result == null) return;
+      if (result == null || !mounted) return;
 
       final imageSource =
           result == 'camera' ? ImageSource.camera : ImageSource.gallery;
@@ -557,8 +576,20 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
         final projectDir = MagicManager.instance.workDir;
         final sourceImagePath =
             '${projectDir.path}/${widget.save.path}/source_image_$sourceId.png';
+
+        // Ensure parent directory exists (just in case)
+        final destInfo = File(sourceImagePath);
+        if (!destInfo.parent.existsSync()) {
+          destInfo.parent.createSync(recursive: true);
+        }
+
         await croppedImage.copy(sourceImagePath);
         await croppedImage.delete();
+
+        // Evict from cache to ensure UI updates
+        await FileImage(File(sourceImagePath)).evict();
+        _imageVersions[sourceImagePath] =
+            (_imageVersions[sourceImagePath] ?? 0) + 1;
 
         // Reload source images
         await _loadSourceImages();
@@ -608,7 +639,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
         ),
       );
 
-      if (result == null) return;
+      if (result == null || !mounted) return;
 
       final imageSource =
           result == 'camera' ? ImageSource.camera : ImageSource.gallery;
@@ -639,6 +670,11 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
         // Copy new image
         await croppedImage.copy(sourceImagePath);
         await croppedImage.delete();
+
+        // Evict from cache to ensure UI updates
+        await FileImage(File(sourceImagePath)).evict();
+        _imageVersions[sourceImagePath] =
+            (_imageVersions[sourceImagePath] ?? 0) + 1;
 
         // Reload source images
         await _loadSourceImages();
@@ -683,6 +719,8 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
       final imageFile = _sourceImages[index];
       if (imageFile.existsSync()) {
         await imageFile.delete();
+        // Evict from cache
+        await FileImage(imageFile).evict();
       }
 
       // Reload source images
@@ -717,7 +755,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
       ),
     );
 
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
 
     try {
       final templateName = _magic!.path ?? '';
@@ -738,6 +776,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
         for (final image in _sourceImages) {
           if (image.existsSync()) {
             await image.delete();
+            await FileImage(image).evict();
           }
         }
 
@@ -748,6 +787,9 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
               '${projectDir.path}/${widget.save.path}/source_image_$sourceId.png';
           await croppedImages[i].copy(sourceImagePath);
           await croppedImages[i].delete();
+          await FileImage(File(sourceImagePath)).evict();
+          _imageVersions[sourceImagePath] =
+              (_imageVersions[sourceImagePath] ?? 0) + 1;
         }
 
         // Reload source images
@@ -778,6 +820,8 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
       setState(() {
         _hasChanges = false;
       });
+
+      if (!mounted) return;
 
       _showSuccessSnackBar('Project changes saved successfully!');
 
@@ -823,6 +867,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
           final files = projectDir.listSync();
           for (final file in files) {
             if (file is File && !file.path.endsWith('meta.json')) {
+              await FileImage(file).evict();
               await file.delete();
             } else if (file is Directory) {
               await file.delete(recursive: true);

@@ -26,7 +26,7 @@ class ImageCropService {
         imageQuality: 90,
       );
 
-      if (pickedFile == null) return null;
+      if (pickedFile == null || !context.mounted) return null;
 
       // Step 2: Immediately open crop screen
       final croppedFile = await CropUtil.cropWithAspectRatio(
@@ -166,6 +166,8 @@ class ImageCropService {
         return null;
       }
 
+      if (!context.mounted) return null;
+
       final List<File> croppedImages = [];
 
       // Show initial info dialog
@@ -205,6 +207,8 @@ class ImageCropService {
           debugPrint('No mask found for source $sourceId');
           continue; // Skip this source if no mask found
         }
+
+        if (!context.mounted) return null;
 
         // Pick and crop image directly without additional wrapper calls
         final croppedFile = await MaskCropService.pickAndCropWithMask(
@@ -299,6 +303,8 @@ class ImageCropService {
           debugPrint('Failed to load mask for source $sourceId');
           continue;
         }
+
+        if (!context.mounted) return null;
 
         // Open crop screen
         final croppedFile = await Navigator.push<File?>(

@@ -121,7 +121,7 @@ class MagicCard extends StatelessWidget {
             Icon(
               Icons.image,
               size: 32,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 4),
             Text(

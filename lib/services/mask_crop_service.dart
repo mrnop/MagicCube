@@ -95,6 +95,8 @@ class MaskCropService {
       return null;
     }
 
+    if (!context.mounted) return null;
+
     return await pickAndCropWithMask(
       context: context,
       maskAssetPath: maskPath,
@@ -270,6 +272,9 @@ class _MaskCropScreenState extends State<MaskCropScreen> {
   Offset _imagePosition = Offset.zero;
   double _imageScale = 1.0;
   bool _isLoading = true;
+  double _minScale = 0.1;
+  double _maxScale = 5.0;
+  double _baseScale = 1.0;
 
   @override
   void initState() {
@@ -323,20 +328,33 @@ class _MaskCropScreenState extends State<MaskCropScreen> {
       final scaleY = (availableHeight * 0.8) / maskHeight;
       final maskScale = math.min(scaleX, scaleY);
 
-      // Calculate scale for the source image to fit nicely within the mask
-      final sourceWidth = _sourceImage!.width.toDouble();
-      final sourceHeight = _sourceImage!.height.toDouble();
-
+      // Calculate effective mask size on screen
       final effectiveMaskWidth = maskWidth * maskScale;
       final effectiveMaskHeight = maskHeight * maskScale;
 
-      final imageScaleX = effectiveMaskWidth / sourceWidth;
-      final imageScaleY = effectiveMaskHeight / sourceHeight;
-      final optimalImageScale = math.max(imageScaleX, imageScaleY);
+      // Calculate scale for the source image
+      final sourceWidth = _sourceImage!.width.toDouble();
+      final sourceHeight = _sourceImage!.height.toDouble();
+
+      // containScale: fits the whole image inside the mask (black bars)
+      // This allows seeing the full image
+      final containScaleX = effectiveMaskWidth / sourceWidth;
+      final containScaleY = effectiveMaskHeight / sourceHeight;
+      final containScale = math.min(containScaleX, containScaleY);
+
+      // coverScale: fills the mask completely (no black bars)
+      final coverScaleX = effectiveMaskWidth / sourceWidth;
+      final coverScaleY = effectiveMaskHeight / sourceHeight;
+      final coverScale = math.max(coverScaleX, coverScaleY);
 
       setState(() {
+        // Allow zooming out until the whole image fits in the mask
+        _minScale = containScale * 0.8; // Allow slightly smaller than contain
+        _maxScale = math.max(5.0, coverScale * 3.0);
+
         _imagePosition = Offset.zero;
-        _imageScale = math.max(0.5, math.min(3.0, optimalImageScale));
+        // Default to cover for better initial look, but user can zoom out
+        _imageScale = coverScale;
       });
     });
   }
@@ -460,14 +478,15 @@ class _MaskCropScreenState extends State<MaskCropScreen> {
                 )
               : GestureDetector(
                   onScaleStart: (details) {
-                    // Reset any gesture state if needed
+                    _baseScale = _imageScale;
                   },
                   onScaleUpdate: (details) {
                     setState(() {
                       // Handle scaling (pinch to zoom)
                       if (details.scale != 1.0) {
-                        final newScale = _imageScale * details.scale;
-                        _imageScale = math.max(0.3, math.min(5.0, newScale));
+                        final newScale = _baseScale * details.scale;
+                        _imageScale =
+                            math.max(_minScale, math.min(_maxScale, newScale));
                       }
 
                       // Handle panning (drag to move)
@@ -577,7 +596,7 @@ class MaskCropPainter extends CustomPainter {
 
     // Draw mask overlay with transparency, scaled to fit screen
     final maskPaint = Paint()
-      ..color = Colors.white.withOpacity(0.7)
+      ..color = Colors.white.withValues(alpha: 0.5)
       ..blendMode = BlendMode.srcOver;
 
     final maskRect = Rect.fromLTWH(
