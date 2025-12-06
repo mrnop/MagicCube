@@ -5,6 +5,9 @@
       <SelectionState runConfigName="magicCube">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="magic_cube_flutter_android">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>
