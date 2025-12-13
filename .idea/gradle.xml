@@ -10,8 +10,6 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/magicCube" />
-            <option value="$PROJECT_DIR$/rateMeLib" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="true" />

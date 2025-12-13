@@ -1,6 +1,6 @@
-name: magic_cube_flutter
+name: magic_cube
 description: Flutter port of MagicCube image processing app
-version: 1.0.4+4
+version: 1.0.6+6
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
